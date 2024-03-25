@@ -1,0 +1,23 @@
+body {
+  font-family: Roboto, Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.image-backdrop {
+  background-color: #fafafa;
+  background-image: linear-gradient(#121212 240px, #fafafa 240px);
+  background-repeat: no-repeat;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  margin: 0;
+}
+
+
+.loader-container {
+  width: 100%;
+  height: 100vh;
+  position: fixed;
+  background: rgba(0, 0, 0, 0.834)
+      url("https://alphaville.github.io/optimization-engine/img/docker.gif") center
+      no-repeat;
+  z-index: 1;
+}

@@ -97,7 +97,7 @@ function App() {
           <a href="/">
             <img src="/docker-icon-new.png" alt="icon" class="h-20"></img>
           </a>
-          <h1 class="text-8xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl p-6 mb-2">
+          <h1 class="text-8xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl p-6 mb-2">
             <a href="/">
               <span class="block">
                 <span class="text-transparent bg-clip-text bg-gradient-to-tr text-white">

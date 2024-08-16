@@ -11,8 +11,7 @@ app = FastAPI()
 client = docker.from_env(timeout=650)
 global current_time
 global total_time
-origins = ["*"
-           ]
+origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -28,12 +27,14 @@ def delete_image(image_name: str, image_tag: str):
     print("returning image: ", time.time() - current_time)
     print("total: ", time.time() - total_time)
     start = time.time()
+    print(client.images.get(f"{image_name}:{image_tag}"))
     client.images.remove(f"{image_name}:{image_tag}")
     print("deleting: ", time.time() - start)
 
 
 @app.get("/install/image-zip")
 async def install_image(image_name: str, background_tasks: BackgroundTasks, image_tag: str = "latest"):
+    print("starting download: ", image_name,":",image_tag)
     background_tasks.add_task(delete_image, image_name, image_tag)
     start = time.time()
     global total_time
@@ -51,4 +52,4 @@ async def install_image(image_name: str, background_tasks: BackgroundTasks, imag
     return StreamingResponse(saved_image, headers=headers, media_type='application/x-tar')
 
 
-uvicorn.run(app, port=8080)
+uvicorn.run(app, port=8080,host="0.0.0.0")

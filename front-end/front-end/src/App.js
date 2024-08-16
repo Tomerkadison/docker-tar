@@ -55,12 +55,14 @@ function App() {
       setSelectedImage(selectedItem);
       imageTagRef.current?.focus();
     }
+    console.log(selectedItem)
   }
 
   function handleImageTagSelect(selectedItem) {
     if (selectedItem) {
       setSelectedImageTag(selectedItem.value)
     }
+    
   }
 
 
@@ -75,18 +77,10 @@ function App() {
 
   function handleDownload() {
     setCurrentPage("LoadingPage")
-    console.log(currentPage)
     downloadFile(
       `http://localhost:8080/install/image-zip?image_name=${selectedImage.name}&image_tag=${selectedImageTag}`,
       `${selectedImage.name}-${selectedImageTag}.tar`
     )
-    console.log(currentPage)
-    // if (!succeed) {
-    //   console.log(succeed)
-    //   console.log("supose to switch page")
-    //   setCurrentPage("StartingPage")
-    // }
-    // setCurrentPage("SuccessPage")
   }
 
 
@@ -121,7 +115,7 @@ function App() {
                 </div>
                 <h2 className='text-3xl font-bold text-white'>:</h2>
                 <div className='ml-4 w-4/12'>
-                  <TagSelect innerRef={imageTagRef} options={imageTags} isDisabled={!selectedImage} onChange={handleImageTagSelect} />
+                  <TagSelect innerRef={imageTagRef} options={imageTags} isDisabled={!selectedImage} onChange={handleImageTagSelect}/>
                 </div>
               </div>
 

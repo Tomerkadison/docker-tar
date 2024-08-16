@@ -15,7 +15,7 @@ const styles = {
 
 const listbox = [{
   
-  name: "Trusted Images",
+  name: "Verified Images",
   displayField: 'name',
   data: async (query) => {
     const storeRes = await fetch(

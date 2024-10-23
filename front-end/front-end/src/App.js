@@ -78,7 +78,7 @@ function App() {
   function handleDownload() {
     setCurrentPage("LoadingPage")
     downloadFile(
-      `http://localhost:8080/install/image-tar?image_name=${selectedImage.name}&image_tag=${selectedImageTag}`,
+      `http://34.173.76.241:8080/install/image-tar?image_name=${selectedImage.name}&image_tag=${selectedImageTag}`,
       `${selectedImage.name}-${selectedImageTag}.tar`
     )
   }

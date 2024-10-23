@@ -19,7 +19,7 @@ const listbox = [{
   displayField: 'name',
   data: async (query) => {
     const storeRes = await fetch(
-      `https://corsproxy.io/?https://hub.docker.com/api/search/v3/catalog/search?query=${query}&source=store&from=0&size=4&type=image`
+      `https://corsproxy.io/?https://hub.docker.com/api/search/v3/catalog/search?query=${query}&source=store&official=true&open_source=true&from=0&size=4&type=image`
     )
     const storeData = await storeRes.json()
     const storeDataResults = storeData.results

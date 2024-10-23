@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/cli-zip.iml" filepath="$PROJECT_DIR$/.idea/cli-zip.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/docker-tar.iml" filepath="$PROJECT_DIR$/.idea/docker-tar.iml" />
     </modules>
   </component>
 </project>

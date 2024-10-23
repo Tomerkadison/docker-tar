@@ -32,7 +32,7 @@ def delete_image(image_name: str, image_tag: str):
     print("deleting: ", time.time() - start)
 
 
-@app.get("/install/image-zip")
+@app.get("/install/image-tar")
 async def install_image(image_name: str, background_tasks: BackgroundTasks, image_tag: str = "latest"):
     print("starting download: ", image_name,":",image_tag)
     background_tasks.add_task(delete_image, image_name, image_tag)

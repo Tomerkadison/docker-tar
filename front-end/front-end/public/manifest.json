@@ -1,6 +1,6 @@
 {
-  "short_name": "Docker Zip",
-  "name": "Docker Zip",
+  "short_name": "Docker Tar",
+  "name": "Docker Tar",
   "icons": [
     {
       "src": "favicon.ico",

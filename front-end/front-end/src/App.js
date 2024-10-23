@@ -78,7 +78,7 @@ function App() {
   function handleDownload() {
     setCurrentPage("LoadingPage")
     downloadFile(
-      `http://localhost:8080/install/image-zip?image_name=${selectedImage.name}&image_tag=${selectedImageTag}`,
+      `http://localhost:8080/install/image-tar?image_name=${selectedImage.name}&image_tag=${selectedImageTag}`,
       `${selectedImage.name}-${selectedImageTag}.tar`
     )
   }
@@ -95,7 +95,7 @@ function App() {
             <a href="/">
               <span class="block">
                 <span class="text-transparent bg-clip-text bg-gradient-to-tr text-white">
-                  Docker Zip
+                  Docker Tar
                 </span>
               </span>
             </a>
@@ -133,14 +133,14 @@ function App() {
                   handleDownload
                 }
               >
-                Donwload Image Zip
+                Donwload Image Tar
                 
                 <DownloadOutlined/>
                </Button>
 
-              <h2 className="text-2xl font-bold tracking-tight text-gray-900/50 mt-96">What is Docker Zip?</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-gray-900/50 mt-96">What is Docker Tar?</h2>
               <p className="text-xl font-bold tracking-tight text-gray-900/50 mt-4 text-center">
-                A website that lets you download Docker Images as Zip files in a click!<br></br><br></br>
+                A website that lets you download Docker Images as Tar files in a click!<br></br><br></br>
                 It came to solve the problem where you could only download images with a docker client installed.<br></br><br></br>
                 Now you can download any image you want. From any computer. Online.
               </p>
@@ -152,7 +152,7 @@ function App() {
             <div className='mt-10 mx-auto w-full flex justify-center items-center flex-col mt-20'>
               <h1 className="text-5xl font-bold sm:text-5xl md:text-5xl p-6 mb-2 text-gray-900/75">
                 <span className="block">
-                  Downloading Image Zip...
+                  Downloading Image Tar...
                 </span>
               </h1>
               <img src="https://alphaville.github.io/optimization-engine/img/docker.gif" alt="loading..." />
@@ -164,7 +164,7 @@ function App() {
             <div className='mt-10 mx-auto w-full flex justify-center items-center flex-col mt-20'>
               <h1 className="text-5xl font-extrabold sm:text-5xl md:text-5xl p-6 mb-2 text-gray-900/85">
                 <span className="block">
-                  Your Image Zip Is Ready!
+                  Your Image Tar Is Ready!
                 </span>
               </h1>
               <img className='mt-10' src="/docker.png" alt="loading..." />

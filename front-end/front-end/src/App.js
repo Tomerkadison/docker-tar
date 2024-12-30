@@ -78,23 +78,23 @@ function App() {
   function handleDownload() {
     setCurrentPage("LoadingPage")
     downloadFile(
-      `http://34.173.76.241:8080/install/image-tar?image_name=${selectedImage.name}&image_tag=${selectedImageTag}`,
+      `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&image_tag=${selectedImageTag}`,
       `${selectedImage.name}-${selectedImageTag}.tar`
     )
   }
 
 
-  return (
+return (
     <div>
-      <div className='mx-auto w-full flex justify-center items-center flex-col mt-20'>
-        <div class="flex items-center">
+      <div className='mx-auto w-full flex justify-center items-center flex-col mt-10 md:mt-20'>
+        <div className="flex items-center flex-col md:flex-row">
           <a href="/">
-            <img src="/docker-icon-new.png" alt="icon" class="h-20"></img>
+            <img src="/docker-icon-new.png" alt="icon" className="h-14 md:h-20"></img>
           </a>
-          <h1 class="text-8xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl p-6 mb-2">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-gray-900 p-3 md:p-6 mb-2">
             <a href="/">
-              <span class="block">
-                <span class="text-transparent bg-clip-text bg-gradient-to-tr text-white">
+              <span className="block">
+                <span className="text-transparent bg-clip-text bg-gradient-to-tr text-white">
                   Docker Tar
                 </span>
               </span>
@@ -102,82 +102,95 @@ function App() {
           </h1>
         </div>
 
-
-
-        {currentPage === "StartingPage" &&
-          (
-            // Headline
-            <>
-
-              <div className='mt-20 mx-auto w-10/12 sm:w-5/12 h-50 flex items-center justify-between bg-gray-800 rounded-lg p-4 shadow-lg'>
-                <div className='mr-4 w-8/12'>
-                  <SearchBox onSelect={handleImageSelect} onChange={handleSearchBoxChange} />
-                </div>
-                <h2 className='text-3xl font-bold text-white'>:</h2>
-                <div className='ml-4 w-4/12'>
-                  <TagSelect innerRef={imageTagRef} options={imageTags} isDisabled={!selectedImage} onChange={handleImageTagSelect}/>
-                </div>
+        {currentPage === "StartingPage" && (
+          <>
+            <div className='mt-2 md:mt-20 mx-auto w-11/12 md:w-5/12 flex flex-col md:flex-row items-center justify-between bg-gray-800 rounded-lg p-4 shadow-lg'>
+              <div className='w-full md:w-8/12 md:mr-4 mb-4 md:mb-0'>
+                <SearchBox onSelect={handleImageSelect} onChange={handleSearchBoxChange} />
               </div>
+              <h2 className='text-3xl font-bold text-white my-2 md:my-0'>:</h2>
+              <div className='w-full md:w-4/12 md:ml-4'>
+                <TagSelect 
+                  innerRef={imageTagRef} 
+                  options={imageTags} 
+                  isDisabled={!selectedImage} 
+                  onChange={handleImageTagSelect}
+                />
+              </div>
+            </div>
 
-              {selectedImage ? (
-                <div className='w-10/12 sm:w-5/12 text-left mt-2 ml-10' >
-                  <a target="_blank" rel="noreferrer" href={`https://hub.docker.com/${selectedImage.rate_plans[0].repositories[0].namespace === 'library' ? '_' : 'r'}/${selectedImage.name}`}
-                    className="text-blue-500 text-lg font-semibold underline hover:text-blue-700"
-                  >See Image Overview</a>
-                </div>
-              ) : <a href="http://dummy" className="text-blue-500 text-lg font-semibold underline hover:text-blue-700" style={{ opacity: 0 }}>Summy</a>}
-
-              <Button disabled={!selectedImageTag} type={selectedImageTag ? 'primary' : 'dashed'} size="large"
-                className={selectedImageTag ? 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-6 px-10 rounded-lg text-2xl items-center justify-center flex' : 'bg-gray-300  text-white font-bold py-6 px-10 rounded-lg text-2xl items-center justify-center flex'}
-                onClick={
-                  handleDownload
-                }
+            {selectedImage ? (
+              <div className='w-11/12 md:w-5/12 text-left mt-2 ml-4 md:ml-10'>
+                <a 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  href={`https://hub.docker.com/${selectedImage.rate_plans[0].repositories[0].namespace === 'library' ? '_' : 'r'}/${selectedImage.name}`}
+                  className="text-blue-500 text-lg font-semibold underline hover:text-blue-700"
+                >
+                  See Image Overview
+                </a>
+              </div>
+            ) : (
+              <a 
+                href="http://dummy" 
+                className="text-blue-500 text-lg font-semibold underline hover:text-blue-700" 
+                style={{ opacity: 0 }}
               >
-                Donwload Image Tar
-                
-                <DownloadOutlined/>
-               </Button>
+                Dummy
+              </a>
+            )}
 
-              <h2 className="text-2xl font-bold tracking-tight text-gray-900/50 mt-96">What is Docker Tar?</h2>
-              <p className="text-xl font-bold tracking-tight text-gray-900/50 mt-4 text-center">
-                A website that lets you download Docker Images as Tar files in a click!<br></br><br></br>
-                It came to solve the problem where you could only download images with a docker client installed.<br></br><br></br>
-                Now you can download any image you want. From any computer. Online.
-              </p>
-            </>
-          )
-        }
-        {currentPage === "LoadingPage" &&
-          (
-            <div className='mt-10 mx-auto w-full flex justify-center items-center flex-col mt-20'>
-              <h1 className="text-5xl font-bold sm:text-5xl md:text-5xl p-6 mb-2 text-gray-900/75">
-                <span className="block">
-                  Downloading Image Tar...
-                </span>
-              </h1>
-              <img src="https://alphaville.github.io/optimization-engine/img/docker.gif" alt="loading..." />
-              <p className="text-l font-bold">it might take a minute or two depending on image size</p>
-            </div>
-          )}
-        {currentPage === "SuccessPage" &&
-          (
-            <div className='mt-10 mx-auto w-full flex justify-center items-center flex-col mt-20'>
-              <h1 className="text-5xl font-extrabold sm:text-5xl md:text-5xl p-6 mb-2 text-gray-900/85">
-                <span className="block">
-                  Your Image Tar Is Ready!
-                </span>
-              </h1>
-              <img className='mt-10' src="/docker.png" alt="loading..." />
-            </div>
-          )}
+            <Button 
+              disabled={!selectedImageTag} 
+              type={selectedImageTag ? 'primary' : 'dashed'} 
+              size="large"
+              className={`${
+                selectedImageTag 
+                  ? 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 md:py-6 px-6 md:px-10 rounded-lg text-xl md:text-2xl items-center justify-center flex' 
+                  : 'bg-gray-300 text-white font-bold py-4 md:py-6 px-6 md:px-10 rounded-lg text-xl md:text-2xl items-center justify-center flex'
+              }`}
+              onClick={handleDownload}
+            >
+              Download Image Tar
+              <DownloadOutlined className="ml-2" />
+            </Button>
+
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-gray-900/50 mt-96">
+              What is Docker Tar?
+            </h2>
+            <p className="text-lg md:text-xl font-bold tracking-tight text-gray-900/50 mt-4 text-center px-4 md:px-0">
+              A website that lets you download Docker Images as Tar files in a click!<br></br><br></br>
+              It came to solve the problem where you could only download images with a docker client installed.<br></br><br></br>
+              Now you can download any image you want. From any computer. Online.
+            </p>
+          </>
+        )}
+
+
+        {currentPage === "LoadingPage" && (
+          <div className='mt-10 mx-auto w-full flex justify-center items-center flex-col'>
+            <h1 className="text-4xl md:text-5xl font-bold p-6 mb-2 text-gray-900/75">
+              <span className="block">
+                Downloading Image Tar...
+              </span>
+            </h1>
+            <img src="https://alphaville.github.io/optimization-engine/img/docker.gif" alt="loading..." />
+            <p className="text-base md:text-l font-bold">it might take a minute or two depending on image size</p>
+          </div>
+        )}
+
+        {currentPage === "SuccessPage" && (
+          <div className='mt-10 mx-auto w-full flex justify-center items-center flex-col'>
+            <h1 className="text-4xl md:text-5xl font-extrabold p-6 mb-2 text-gray-900/85">
+              <span className="block">
+                Your Image Tar Is Ready!
+              </span>
+            </h1>
+            <img className='mt-10' src="/docker.png" alt="loading..." />
+          </div>
+        )}
       </div>
     </div>
   );
-
-
-
-
-
 }
-
 export default App;

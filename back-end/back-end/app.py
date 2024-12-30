@@ -11,7 +11,7 @@ app = FastAPI()
 client = docker.from_env(timeout=650)
 global current_time
 global total_time
-origins = ["http://34.173.76.241:3000"]
+origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

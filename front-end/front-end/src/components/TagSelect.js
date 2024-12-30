@@ -4,7 +4,7 @@ import Select from 'react-select';
 
 async function getImageTags(namespace, image) {
     const imageTagsRes = await fetch(
-        `https://corsproxy.io/?https://hub.docker.com/v2/repositories/${namespace}/${image}/tags/?page_size=100&page=1&name&ordering`
+        `https://dockertar.zapto.org/dockerhub/v2/repositories/${namespace}/${image}/tags/?page_size=100&page=1&name&ordering`
     );
     const imageTagsData = await imageTagsRes.json();
     const imageTags = imageTagsData.results;

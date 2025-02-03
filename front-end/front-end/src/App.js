@@ -23,6 +23,7 @@ function App() {
       };
       fetchImageTags();
     }
+    
   }, [selectedImage]);
 
 
@@ -85,13 +86,14 @@ function App() {
 
 
 return (
-    <div>
-      <div className='mx-auto w-full flex justify-center items-center flex-col mt-10 md:mt-20'>
-        <div className="flex items-center flex-col md:flex-row">
+        <div>
+      <div className="mx-auto w-full flex justify-center items-center flex-col mt-24 md:mt-20">
+        {/* Updated header container */}
+        <div className="header-container flex items-center">
           <a href="/">
-            <img src="/docker-icon-new.png" alt="icon" className="h-14 md:h-20"></img>
+            <img src="/docker-icon-new.png" alt="icon" className="h-14 md:h-20" />
           </a>
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-gray-900 p-3 md:p-6 mb-2">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight p-3 md:p-6 mb-2">
             <a href="/">
               <span className="block">
                 <span className="text-transparent bg-clip-text bg-gradient-to-tr text-white">
@@ -102,14 +104,15 @@ return (
           </h1>
         </div>
 
+
         {currentPage === "StartingPage" && (
           <>
-            <div className='mt-2 md:mt-20 mx-auto w-11/12 md:w-5/12 flex flex-col md:flex-row items-center justify-between bg-gray-800 rounded-lg p-4 shadow-lg'>
-              <div className='w-full md:w-8/12 md:mr-4 mb-4 md:mb-0'>
+            <div className="search-container mt-20 md:mt-20 mx-auto w-11/12 md:w-5/12 flex flex-col md:flex-row items-center justify-between bg-gray-800 rounded-lg p-4 shadow-lg">
+              <div className="w-full md:w-8/12 md:mr-4 mb-0">
                 <SearchBox onSelect={handleImageSelect} onChange={handleSearchBoxChange} />
               </div>
-              <h2 className='text-3xl font-bold text-white my-2 md:my-0'>:</h2>
-              <div className='w-full md:w-4/12 md:ml-4'>
+              <h2 className="text-3xl font-bold text-white my-2 md:my-0">:</h2>
+              <div className="w-full md:w-4/12 md:ml-4">
                 <TagSelect 
                   innerRef={imageTagRef} 
                   options={imageTags} 
@@ -120,7 +123,7 @@ return (
             </div>
 
             {selectedImage ? (
-              <div className='w-11/12 md:w-5/12 text-left mt-2 ml-4 md:ml-10'>
+              <div className="w-11/12 md:w-5/12 text-left mt-2 ml-4 md:ml-10">
                 <a 
                   target="_blank" 
                   rel="noreferrer" 
@@ -159,8 +162,8 @@ return (
               What is Docker Tar?
             </h2>
             <p className="text-lg md:text-xl font-bold tracking-tight text-gray-900/50 mt-4 text-center px-4 md:px-0">
-              A website that lets you download Docker Images as Tar files in a click!<br></br><br></br>
-              It came to solve the problem where you could only download images with a docker client installed.<br></br><br></br>
+              A website that lets you download Docker Images as Tar files in a click!<br /><br />
+              It came to solve the problem where you could only download images with a docker client installed.<br /><br />
               Now you can download any image you want. From any computer. Online.
             </p>
           </>

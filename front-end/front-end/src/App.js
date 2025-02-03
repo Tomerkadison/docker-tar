@@ -168,12 +168,12 @@ return (
             </p>
             
             {/* Mobile Feedback Button (Visible only on phones) */}
-            <div className="md:hidden mt-8 flex justify-center">
+            <div className=" mt-8 flex justify-center">
             <a
           href="https://forms.gle/Mr3vmAk5Fz81VRKh6"  // <-- Replace with your Google Forms URL
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-gray-100 text-lg md:text-xl font-bold tracking-tight text-gray-900/50 font-bold py-3 px-6 rounded hover:bg-gray-300"
+          className="bg-gray-100 text-lg font-bold tracking-tight text-gray-900/50 font-bold py-3 px-6 rounded hover:bg-gray-300"
         >
           Have a Feedback?
         </a>
@@ -208,17 +208,6 @@ return (
         )}
       </div>
 
-      {/* Desktop Feedback Button - Fixed at bottom left (Visible only on md and larger screens) */}
-      <div className="hidden md:block fixed bottom-4 left-4 z-50">
-        <a
-          href="https://forms.gle/Mr3vmAk5Fz81VRKh6"  // <-- Replace with your Google Forms URL
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-gray-100 text-lg font-bold tracking-tight text-gray-900/50 font-bold py-3 px-6 rounded hover:bg-gray-300"
-        >
-          Have a Feedback?
-        </a>
-      </div>
     </div>
   );
 }

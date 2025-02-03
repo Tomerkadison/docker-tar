@@ -86,7 +86,7 @@ function App() {
 
 
 return (
-        <div>
+    <div>
       <div className="mx-auto w-full flex justify-center items-center flex-col mt-24 md:mt-20">
         {/* Updated header container */}
         <div className="header-container flex items-center">
@@ -166,25 +166,39 @@ return (
               It came to solve the problem where you could only download images with a docker client installed.<br /><br />
               Now you can download any image you want. From any computer. Online.
             </p>
+            
+            {/* Mobile Feedback Button (Visible only on phones) */}
+            <div className="md:hidden mt-8 flex justify-center">
+            <a
+          href="https://forms.gle/Mr3vmAk5Fz81VRKh6"  // <-- Replace with your Google Forms URL
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-gray-100 text-lg md:text-xl font-bold tracking-tight text-gray-900/50 font-bold py-3 px-6 rounded hover:bg-gray-300"
+        >
+          Have a Feedback?
+        </a>
+      </div>
           </>
         )}
 
 
         {currentPage === "LoadingPage" && (
           <div className='mt-10 mx-auto w-full flex justify-center items-center flex-col'>
-            <h1 className="text-4xl md:text-5xl font-bold p-6 mb-2 text-gray-900/75">
+            <h1 className="text-4xl md:text-5xl font-bold p-6 mb-2 text-gray-900/75 text-center">
               <span className="block">
                 Downloading Image Tar...
               </span>
             </h1>
             <img src="https://alphaville.github.io/optimization-engine/img/docker.gif" alt="loading..." />
-            <p className="text-base md:text-l font-bold">it might take a minute or two depending on image size</p>
+            <p className="text-base md:text-l font-bold text-center">
+              it might take a minute or two depending on image size
+            </p>
           </div>
         )}
 
         {currentPage === "SuccessPage" && (
           <div className='mt-10 mx-auto w-full flex justify-center items-center flex-col'>
-            <h1 className="text-4xl md:text-5xl font-extrabold p-6 mb-2 text-gray-900/85">
+            <h1 className="text-4xl md:text-5xl font-extrabold p-6 mb-2 text-gray-900/85 text-center">
               <span className="block">
                 Your Image Tar Is Ready!
               </span>
@@ -192,6 +206,18 @@ return (
             <img className='mt-10' src="/docker.png" alt="loading..." />
           </div>
         )}
+      </div>
+
+      {/* Desktop Feedback Button - Fixed at bottom left (Visible only on md and larger screens) */}
+      <div className="hidden md:block fixed bottom-4 left-4 z-50">
+        <a
+          href="https://forms.gle/Mr3vmAk5Fz81VRKh6"  // <-- Replace with your Google Forms URL
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-gray-100 text-lg font-bold tracking-tight text-gray-900/50 font-bold py-3 px-6 rounded hover:bg-gray-300"
+        >
+          Have a Feedback?
+        </a>
       </div>
     </div>
   );

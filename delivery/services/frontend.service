@@ -1,0 +1,17 @@
+[Unit]
+Description=Node.js Frontend Service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/home/tomerkadison2/docker-zip/front-end/front-end
+ExecStart=/usr/bin/sudo npm start
+Restart=always
+RestartSec=3
+Environment=PATH=/usr/bin:/usr/local/bin
+
+[Install]
+WantedBy=multi-user.target

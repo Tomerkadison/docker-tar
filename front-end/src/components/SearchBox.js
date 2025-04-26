@@ -38,6 +38,14 @@ const listbox = [{
     return comunityDataResults
   },
   searchType: 'startsWith',
+},
+{
+  name: "Your Explicit Image",
+  displayField: 'name',
+  data: (query) => {
+    const queryObject = {"name":query,"rate_plans":[{"repositories": [{"namespace": "_"}]}]}
+    return [queryObject]
+  }
 }
 ]
 
@@ -61,7 +69,7 @@ const SearchBox = (props) => {
       clearButton={true}
       debounceWait={250}
       listboxIsImmutable={true}
-      maxItems={8}
+      maxItems={9}
       noItemsMessage="No Images Found"
       placeholder='Search for an image'
       listbox={listbox}

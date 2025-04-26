@@ -16,10 +16,26 @@ function App() {
   useEffect(() => {
     if (selectedImage) {
       const fetchImageTags = async () => {
-        const imageName = selectedImage.rate_plans[0].repositories[0].name
-        const imageNamespace = selectedImage.rate_plans[0].repositories[0].namespace
-        const tags = await getImageTags(imageNamespace, imageName);
-        setImageTags(tags);
+        // Check if this is an explicitly entered image with no namespace
+        if (selectedImage.rate_plans && 
+            selectedImage.rate_plans[0] && 
+            selectedImage.rate_plans[0].repositories && 
+            selectedImage.rate_plans[0].repositories[0]) {
+          const imageName = selectedImage.rate_plans[0].repositories[0].name || selectedImage.name;
+          const imageNamespace = selectedImage.rate_plans[0].repositories[0].namespace;
+          
+          try {
+            const tags = await getImageTags(imageNamespace, imageName);
+            setImageTags(tags);
+          } catch (error) {
+            console.error("Error fetching tags:", error);
+            // If API fetch fails, still allow manual tag entry
+            setImageTags([]);
+          }
+        } else {
+          // For explicitly entered images without proper structure
+          setImageTags([]);
+        }
       };
       fetchImageTags();
     }
@@ -61,9 +77,8 @@ function App() {
 
   function handleImageTagSelect(selectedItem) {
     if (selectedItem) {
-      setSelectedImageTag(selectedItem.value)
+      setSelectedImageTag(selectedItem.value);
     }
-    
   }
 
 

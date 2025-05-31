@@ -11,35 +11,84 @@ function App() {
   const [imageTags, setImageTags] = useState(null);
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const [currentPage, setCurrentPage] = useState("StartingPage");
+  const [tagPaginationInfo, setTagPaginationInfo] = useState(null);
+  const [emptyTagSelected, setEmptyTagSelected] = useState(false);
   const imageTagRef = useRef();
+
+  // Function to fetch image tags with pagination
+  const fetchImageTags = async (page = 1) => {
+    if (!selectedImage) return;
+    
+    try {
+      // Check if this is an explicitly entered image with no namespace
+      if (selectedImage.rate_plans && 
+          selectedImage.rate_plans[0] && 
+          selectedImage.rate_plans[0].repositories && 
+          selectedImage.rate_plans[0].repositories[0]) {
+        const imageName = selectedImage.rate_plans[0].repositories[0].name || selectedImage.name;
+        const imageNamespace = selectedImage.rate_plans[0].repositories[0].namespace;
+        
+        try {
+          const result = await getImageTags(imageNamespace, imageName, page);
+          
+          if (result.tags) {
+            // If this is the first page, replace tags
+            // Otherwise, append to existing tags
+            if (page === 1) {
+              setImageTags(result.tags);
+            } else {
+              setImageTags(prevTags => [...prevTags, ...result.tags]);
+            }
+            
+            // Update pagination info
+            setTagPaginationInfo({
+              hasMore: result.hasMore,
+              count: result.count
+            });
+          } else {
+            // Handle old format or error response
+            console.warn("Unexpected response format:", result);
+            if (page === 1) {
+              setImageTags(Array.isArray(result) ? result : []);
+              setTagPaginationInfo({ hasMore: false, count: Array.isArray(result) ? result.length : 0 });
+            }
+          }
+        } catch (error) {
+          console.warn("Error fetching tags:", error);
+          // If API fetch fails, set empty array to allow manual tag entry
+          if (page === 1) {
+            setImageTags([]);
+            setTagPaginationInfo({ hasMore: false, count: 0 });
+          }
+        }
+      } else {
+        // For explicitly entered images without proper structure
+        if (page === 1) {
+          setImageTags([]);
+          setTagPaginationInfo({ hasMore: false, count: 0 });
+        }
+      }
+    } catch (error) {
+      console.warn("Error in fetchImageTags:", error);
+      if (page === 1) {
+        setImageTags([]);
+        setTagPaginationInfo({ hasMore: false, count: 0 });
+      }
+    }
+  };
+
+  // Load more tags when the "Show More" button is clicked
+  const handleLoadMoreTags = (nextPage) => {
+    fetchImageTags(nextPage);
+  };
 
   useEffect(() => {
     if (selectedImage) {
-      const fetchImageTags = async () => {
-        // Check if this is an explicitly entered image with no namespace
-        if (selectedImage.rate_plans && 
-            selectedImage.rate_plans[0] && 
-            selectedImage.rate_plans[0].repositories && 
-            selectedImage.rate_plans[0].repositories[0]) {
-          const imageName = selectedImage.rate_plans[0].repositories[0].name || selectedImage.name;
-          const imageNamespace = selectedImage.rate_plans[0].repositories[0].namespace;
-          
-          try {
-            const tags = await getImageTags(imageNamespace, imageName);
-            setImageTags(tags);
-          } catch (error) {
-            console.error("Error fetching tags:", error);
-            // If API fetch fails, still allow manual tag entry
-            setImageTags([]);
-          }
-        } else {
-          // For explicitly entered images without proper structure
-          setImageTags([]);
-        }
-      };
-      fetchImageTags();
+      // Reset tags and fetch first page when image changes
+      setImageTags([]);
+      setTagPaginationInfo(null);
+      fetchImageTags(1);
     }
-    
   }, [selectedImage]);
 
 
@@ -70,6 +119,7 @@ function App() {
   function handleImageSelect(selectedItem) {
     if (selectedItem) {
       setSelectedImage(selectedItem);
+      setEmptyTagSelected(false);
       imageTagRef.current?.focus();
     }
     console.log(selectedItem)
@@ -77,7 +127,21 @@ function App() {
 
   function handleImageTagSelect(selectedItem) {
     if (selectedItem) {
-      setSelectedImageTag(selectedItem.value);
+      console.log("Tag selected:", selectedItem); // Debug log
+      
+      // Check if this is the empty tag option
+      if (selectedItem.value === '') {
+        setSelectedImageTag('');
+        setEmptyTagSelected(true);
+      } else {
+        setSelectedImageTag(selectedItem.value);
+        setEmptyTagSelected(false);
+      }
+    } else {
+      // Handle the case where selectedItem is null or undefined
+      console.log("No tag selected or empty tag");
+      setSelectedImageTag(null);
+      setEmptyTagSelected(false);
     }
   }
 
@@ -86,7 +150,8 @@ function App() {
     if (query === "") {
       setSelectedImage(null);
       setImageTags(null);
-      setSelectedImageTag(null)
+      setSelectedImageTag(null);
+      setEmptyTagSelected(false);
       imageTagRef.current?.clearValue();
     }
   }
@@ -133,6 +198,8 @@ return (
                   options={imageTags} 
                   isDisabled={!selectedImage} 
                   onChange={handleImageTagSelect}
+                  paginationInfo={tagPaginationInfo}
+                  onLoadMore={handleLoadMoreTags}
                 />
               </div>
             </div>
@@ -159,11 +226,11 @@ return (
             )}
 
             <Button 
-              disabled={!selectedImageTag} 
-              type={selectedImageTag ? 'primary' : 'dashed'} 
+              disabled={!selectedImage || !emptyTagSelected} 
+              type={(selectedImage && emptyTagSelected) ? 'primary' : 'dashed'} 
               size="large"
               className={`${
-                selectedImageTag 
+                (selectedImage && emptyTagSelected)
                   ? 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 md:py-6 px-6 md:px-10 rounded-lg text-xl md:text-2xl items-center justify-center flex' 
                   : 'bg-gray-300 text-white font-bold py-4 md:py-6 px-6 md:px-10 rounded-lg text-xl md:text-2xl items-center justify-center flex'
               }`}

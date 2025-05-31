@@ -1,5 +1,6 @@
 
 import Select from 'react-select';
+import React, { useState, useEffect } from 'react';
 //import { Select } from 'antd'
 
 async function getImageTags(namespace, image) {
@@ -44,9 +45,61 @@ async function getImageTags(namespace, image) {
     return imageTagsOptions;
 }
 
+// Function to filter and sort options based on input value
+const filterAndSortOptions = (options, inputValue) => {
+    if (!inputValue || !options) return options;
+    
+    const input = inputValue.toLowerCase();
+    
+    // Create a new array with priority information
+    const optionsWithPriority = options.map(option => {
+        const optionValue = option.value.toLowerCase();
+        
+        // Assign priority based on match type
+        if (optionValue === input) {
+            // Exact match (highest priority)
+            return { ...option, priority: 1 };
+        } else if (optionValue.startsWith(input)) {
+            // Starts with match (medium priority)
+            return { ...option, priority: 2 };
+        } else if (optionValue.includes(input)) {
+            // Contains match (lowest priority)
+            return { ...option, priority: 3 };
+        }
+        
+        // No match
+        return { ...option, priority: 999 };
+    });
+    
+    // Filter out non-matches
+    const filteredOptions = optionsWithPriority.filter(option => option.priority < 999);
+    
+    // Sort by priority
+    filteredOptions.sort((a, b) => a.priority - b.priority);
+    
+    return filteredOptions;
+};
+
 const TagSelect = (props) => {
-    // Extract isLoading from props to avoid passing it twice
-    const { isLoading, ...otherProps } = props;
+    // Extract options and isLoading from props
+    const { options, isLoading, onChange, ...otherProps } = props;
+    
+    // State for input value and filtered options
+    const [inputValue, setInputValue] = useState('');
+    const [filteredOptions, setFilteredOptions] = useState(options || []);
+    
+    // Update filtered options when options or input value changes
+    useEffect(() => {
+        if (options) {
+            setFilteredOptions(filterAndSortOptions(options, inputValue));
+        }
+    }, [options, inputValue]);
+    
+    // Handle input change
+    const handleInputChange = (newValue) => {
+        setInputValue(newValue);
+        return newValue;
+    };
     
     return (
         <Select
@@ -59,6 +112,10 @@ const TagSelect = (props) => {
             isDisabled={props.isDisabled || isLoading}
             isLoading={isLoading}
             loadingMessage={() => "Fetching all tags..."}
+            options={filteredOptions}
+            onInputChange={handleInputChange}
+            onChange={onChange}
+            filterOption={() => true} // Let our custom logic handle filtering
             {...otherProps}
         />
     );

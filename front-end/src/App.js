@@ -11,15 +11,23 @@ function App() {
   const [imageTags, setImageTags] = useState(null);
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const [currentPage, setCurrentPage] = useState("StartingPage");
+  const [isTagsLoading, setIsTagsLoading] = useState(false);
   const imageTagRef = useRef();
 
   useEffect(() => {
     if (selectedImage) {
       const fetchImageTags = async () => {
-        const imageName = selectedImage.rate_plans[0].repositories[0].name
-        const imageNamespace = selectedImage.rate_plans[0].repositories[0].namespace
-        const tags = await getImageTags(imageNamespace, imageName);
-        setImageTags(tags);
+        setIsTagsLoading(true);
+        try {
+          const imageName = selectedImage.rate_plans[0].repositories[0].name;
+          const imageNamespace = selectedImage.rate_plans[0].repositories[0].namespace;
+          const tags = await getImageTags(imageNamespace, imageName);
+          setImageTags(tags);
+        } catch (error) {
+          console.error("Error fetching image tags:", error);
+        } finally {
+          setIsTagsLoading(false);
+        }
       };
       fetchImageTags();
     }
@@ -117,6 +125,7 @@ return (
                   innerRef={imageTagRef} 
                   options={imageTags} 
                   isDisabled={!selectedImage} 
+                  isLoading={isTagsLoading}
                   onChange={handleImageTagSelect}
                 />
               </div>

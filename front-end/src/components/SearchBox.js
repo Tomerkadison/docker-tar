@@ -1,3 +1,4 @@
+import React from 'react'
 import Turnstone from 'turnstone'
 const styles = {
   input: 'w-full border py-2 px-4 text-lg outline-none rounded-md',

@@ -36,9 +36,19 @@ function App() {
 
 
   const downloadFile = (url, fileName) => {
-    const response = fetch(url)
-      .then((response) => response.blob())
+    fetch(url)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.blob();
+      })
       .then((blob) => {
+        // Check if the blob is empty (0 KB)
+        if (blob.size < 10) {
+          throw new Error(`Received empty file (${blob.size} KB). Backend operation failed.`);
+        }
+        
         const url = window.URL.createObjectURL(new Blob([blob]));
         const link = document.createElement("a");
         link.href = url;
@@ -49,14 +59,13 @@ function App() {
 
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        setCurrentPage("SuccessPage")
-      }).catch((error) => {
+        setCurrentPage("SuccessPage");
+      })
+      .catch((error) => {
+        console.error("Download error:", error);
         alert("Failed to download image... Try again later");
-        setCurrentPage("StartingPage")
+        setCurrentPage("StartingPage");
       });
-    if (response.status === 200) {
-      setCurrentPage("SuccessPage")
-    }
   };
 
   function handleImageSelect(selectedItem) {

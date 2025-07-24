@@ -69,7 +69,6 @@ Docker Tar is built with modern web technologies for optimal performance and rel
 ### Infrastructure
 - **Nginx** - Reverse proxy with SSL termination
 - **Let's Encrypt** - Free SSL certificates
-- **Systemd** - Production-ready service management
 
 ## 🚀 Quick Start
 
@@ -108,7 +107,7 @@ Docker Tar is built with modern web technologies for optimal performance and rel
 
 ### Production Deployment
 
-For production deployment with SSL and systemd services, see our [deployment guide](delivery/).
+For production deployment with SSL, configure Nginx as a reverse proxy to the backend and frontend services.
 
 ## 📡 API Reference
 
@@ -145,9 +144,6 @@ docker-tar/
 │   │   ├── App.js     # Main component
 │   │   └── components/
 │   └── package.json
-├── delivery/          # Production deployment
-│   ├── nginx.conf     # Nginx configuration
-│   └── services/      # Systemd services
 └── CLAUDE.md          # Technical documentation
 ```
 

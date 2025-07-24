@@ -6,7 +6,7 @@
 ## Architecture
 - **Frontend**: React.js (18.1.0) with Tailwind CSS and Ant Design
 - **Backend**: Python FastAPI with Docker SDK
-- **Deployment**: Nginx reverse proxy with SSL certificates
+- **Deployment**: Nginx reverse proxy
 - **Domain**: dockertar.zapto.org (production)
 - **No Database**: Stateless application using Docker Hub APIs
 
@@ -16,17 +16,14 @@ docker-tar/
 ├── back-end/
 │   ├── app.py              # FastAPI server with Docker integration
 │   └── requirements.txt    # Python dependencies
-├── front-end/
-│   ├── src/
-│   │   ├── App.js         # Main React application
-│   │   └── components/
-│   │       ├── SearchBox.js   # Docker Hub search with Turnstone
-│   │       └── TagSelect.js   # Tag selection with React Select
-│   ├── package.json       # React dependencies and scripts
-│   └── public/            # Static assets
-└── delivery/
-    ├── nginx.conf         # Nginx configuration with SSL
-    └── services/          # Systemd service files
+└── front-end/
+    ├── src/
+    │   ├── App.js         # Main React application
+    │   └── components/
+    │       ├── SearchBox.js   # Docker Hub search with Turnstone
+    │       └── TagSelect.js   # Tag selection with React Select
+    ├── package.json       # React dependencies and scripts
+    └── public/            # Static assets
 ```
 
 ## Backend (app.py)
@@ -92,20 +89,14 @@ Tags: /dockerhub/v2/repositories/{namespace}/{image}/tags/
 
 ## Infrastructure
 
-### Nginx Configuration (nginx.conf)
+### Nginx Configuration
 ```
 / → Frontend (localhost:3000)
 /install → Backend (localhost:8080/install/image-tar) 
 /dockerhub/ → Docker Hub API proxy
 ```
-- SSL with Let's Encrypt certificates
-- HTTP to HTTPS redirect
 - CORS headers for Docker Hub proxy
-
-### Systemd Services
-- **backend.service**: Runs Python FastAPI server
-- **frontend.service**: Runs React development server
-- Both configured with auto-restart
+- Reverse proxy setup for production deployment
 
 ## Development Commands
 ```bash
@@ -131,10 +122,15 @@ Based on git commits:
 - Images are automatically cleaned up after download
 - Concurrent tag fetching for better performance
 - File size validation prevents empty downloads
-- Production deployment uses SSL certificates
+- Production deployment with reverse proxy setup
 
 ## Key Files to Monitor
 - `back-end/app.py:55` - Main server logic
 - `front-end/src/App.js:96-102` - Download handling
 - `front-end/src/components/TagSelect.js:6-46` - Tag fetching logic
-- `delivery/nginx.conf:22-24` - Backend routing
+
+## Project Workflow Guidelines
+- Make sure to update the readme.md file after every change that may interest the repo visitor
+
+## Documentation Guidelines
+- Ensure to document every change that may be relevant to future Claude Code instances in this CLAUDE.md file

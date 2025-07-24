@@ -27,13 +27,6 @@ Docker Tar solves a fundamental problem: **downloading Docker images without hav
 - 🔒 **Secure & Clean** - Images are automatically cleaned up after download
 - 📱 **Responsive Design** - Works seamlessly on desktop and mobile devices
 
-## 🎯 Use Cases
-
-- **Offline Environments** - Download images for air-gapped systems
-- **CI/CD Pipelines** - Integrate into build processes without Docker daemon
-- **Education & Training** - Distribute Docker images to students easily
-- **Backup & Archive** - Create local backups of critical images
-- **Network Restrictions** - Bypass Docker Hub rate limits or network policies
 
 ## 🖥️ Screenshots
 
@@ -181,12 +174,6 @@ We welcome contributions! Here's how you can help:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- **Docker Hub** - For providing the public registry API
-- **FastAPI** - For the excellent Python web framework
-- **React Community** - For the amazing ecosystem of components
-- **All Contributors** - Thank you for making this project better!
 
 ## 📞 Support
 

@@ -50,8 +50,47 @@ async function getImageTags(namespace, image, page = 1) {
     }
 }
 
+// Function to filter and sort options based on input value
+const filterAndSortOptions = (options, inputValue) => {
+    if (!inputValue || !options) return options;
+    
+    const input = inputValue.toLowerCase();
+    
+    // Create a new array with priority information
+    const optionsWithPriority = options.map(option => {
+        const optionValue = option.value.toLowerCase();
+        
+        // Assign priority based on match type
+        if (optionValue === input) {
+            // Exact match (highest priority)
+            return { ...option, priority: 1 };
+        } else if (optionValue.startsWith(input)) {
+            // Starts with match (medium priority)
+            return { ...option, priority: 2 };
+        } else if (optionValue.includes(input)) {
+            // Contains match (lowest priority)
+            return { ...option, priority: 3 };
+        }
+        
+        // No match
+        return { ...option, priority: 999 };
+    });
+    
+    // Filter out non-matches
+    const filteredOptions = optionsWithPriority.filter(option => option.priority < 999);
+    
+    // Sort by priority
+    filteredOptions.sort((a, b) => a.priority - b.priority);
+    
+    return filteredOptions;
+};
+
 const TagSelect = (props) => {
+    // Extract options and isLoading from props
+    const { options, isLoading, onChange, ...otherProps } = props;
+    
     const [inputValue, setInputValue] = useState('');
+    const [filteredOptions, setFilteredOptions] = useState(options || []);
     const [hasMore, setHasMore] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
@@ -70,6 +109,13 @@ const TagSelect = (props) => {
             setCurrentPage(1);
         }
     }, [props.options]);
+    
+    // Update filtered options when options or input value changes
+    useEffect(() => {
+        if (options) {
+            setFilteredOptions(filterAndSortOptions(options, inputValue));
+        }
+    }, [options, inputValue]);
     
     const createOption = (label) => ({
         label,
@@ -211,6 +257,12 @@ const TagSelect = (props) => {
         }
     };
     
+    // Handle input change
+    const handleInputChange = (newValue) => {
+        setInputValue(newValue);
+        return newValue;
+    };
+    
     // Wrap the onChange handler to add debugging
     const handleChange = (selectedOption) => {
         console.log("TagSelect onChange:", selectedOption); // Debug log
@@ -223,15 +275,19 @@ const TagSelect = (props) => {
             isSearchable={true}
             //isClearable={true}
             name="lastest"
-            placeholder="Select Image Tag"
+            placeholder={isLoading ? "Loading tags..." : "Select Image Tag"}
             ref={props.innerRef}
+            isDisabled={props.isDisabled || isLoading}
+            isLoading={isLoading}
+            loadingMessage={() => "Fetching all tags..."}
             components={{ Menu }}
-            onInputChange={(value) => setInputValue(value)}
+            options={filteredOptions}
+            onInputChange={handleInputChange}
             onKeyDown={handleKeyDown}
             onChange={handleChange}
             noOptionsMessage={() => "No tags found. Type to create a custom tag."}
-            filterOption={filterOption}
-            {...props}
+            filterOption={() => true} // Let our custom logic handle filtering
+            {...otherProps}
         />
     );
 }

@@ -13,6 +13,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState("StartingPage");
   const [tagPaginationInfo, setTagPaginationInfo] = useState(null);
   const [emptyTagSelected, setEmptyTagSelected] = useState(false);
+  const [isTagsLoading, setIsTagsLoading] = useState(false);
   const imageTagRef = useRef();
 
   // Function to fetch image tags with pagination
@@ -87,15 +88,28 @@ function App() {
       // Reset tags and fetch first page when image changes
       setImageTags([]);
       setTagPaginationInfo(null);
-      fetchImageTags(1);
+      setIsTagsLoading(true);
+      fetchImageTags(1).finally(() => {
+        setIsTagsLoading(false);
+      });
     }
   }, [selectedImage]);
 
 
   const downloadFile = (url, fileName) => {
-    const response = fetch(url)
-      .then((response) => response.blob())
+    fetch(url)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.blob();
+      })
       .then((blob) => {
+        // Check if the blob is empty (0 KB)
+        if (blob.size < 10) {
+          throw new Error(`Received empty file (${blob.size} KB). Backend operation failed.`);
+        }
+        
         const url = window.URL.createObjectURL(new Blob([blob]));
         const link = document.createElement("a");
         link.href = url;
@@ -106,14 +120,13 @@ function App() {
 
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        setCurrentPage("SuccessPage")
-      }).catch((error) => {
+        setCurrentPage("SuccessPage");
+      })
+      .catch((error) => {
+        console.error("Download error:", error);
         alert("Failed to download image... Try again later");
-        setCurrentPage("StartingPage")
+        setCurrentPage("StartingPage");
       });
-    if (response.status === 200) {
-      setCurrentPage("SuccessPage")
-    }
   };
 
   function handleImageSelect(selectedItem) {
@@ -197,6 +210,7 @@ return (
                   innerRef={imageTagRef} 
                   options={imageTags} 
                   isDisabled={!selectedImage} 
+                  isLoading={isTagsLoading}
                   onChange={handleImageTagSelect}
                   paginationInfo={tagPaginationInfo}
                   onLoadMore={handleLoadMoreTags}

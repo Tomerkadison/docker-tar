@@ -1,56 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
-//import { Select } from 'antd'
 import { components } from 'react-select';
 
-async function getImageTags(namespace, image, page = 1) {
-    try {
-        const imageTagsRes = await fetch(
-            `https://dockertar.zapto.org/dockerhub/v2/repositories/${namespace}/${image}/tags/?page_size=100&page=${page}&name&ordering`
-        );
-        if (!imageTagsRes.ok) {
-            return { tags: [], hasMore: false }; // Return empty array for non-200 responses
-        }
-        const imageTagsData = await imageTagsRes.json();
-        const imageTags = imageTagsData.results || [];
-
-        // Only add 'latest' if there are no tags and it's not already present
-        if (imageTags.length === 0 && page === 1) {
-            return { 
-                tags: [{ value: 'latest', label: 'latest' }],
-                hasMore: false,
-                count: 1
-            };
-        }
-
-        const imageTagsOptions = imageTags.map(tag => {
-            return { 
-                value: tag.name, 
-                label: tag.name
-            };
-        });
-
-        // Check if there are more pages
-        const count = imageTagsData.count || 0;
-        const hasMore = page * 100 < count;
-
-        return {
-            tags: imageTagsOptions,
-            hasMore,
-            count
-        };
-    } catch (error) {
-        console.warn("Error fetching image tags:", error);
-        // Return empty array on error, we'll handle this in the UI
-        return {
-            tags: [],
-            hasMore: false,
-            count: 0
-        };
-    }
-}
-
-// Function to filter and sort options based on input value
+/**
+ * Filters and sorts options based on input value with priority matching
+ * @param {Array} options - Array of tag options
+ * @param {string} inputValue - Current input value
+ * @returns {Array} Filtered and sorted options
+ */
 const filterAndSortOptions = (options, inputValue) => {
     if (!inputValue || !options) return options;
     
@@ -85,6 +42,18 @@ const filterAndSortOptions = (options, inputValue) => {
     return filteredOptions;
 };
 
+/**
+ * TagSelect component for Docker image tag selection with advanced features
+ * @param {Object} props - Component props
+ * @param {Array} props.options - Available tag options
+ * @param {boolean} props.isLoading - Loading state
+ * @param {Function} props.onChange - Change handler
+ * @param {Object} props.paginationInfo - Pagination information
+ * @param {Function} props.onLoadMore - Load more handler
+ * @param {boolean} props.isDisabled - Disabled state
+ * @param {Object} props.innerRef - Ref for the select component
+ * @returns {JSX.Element} TagSelect component
+ */
 const TagSelect = (props) => {
     // Extract options and isLoading from props
     const { options, isLoading, onChange, ...otherProps } = props;
@@ -288,5 +257,4 @@ const TagSelect = (props) => {
     );
 }
 
-export { getImageTags }
 export default TagSelect

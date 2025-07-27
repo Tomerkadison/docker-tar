@@ -1,4 +1,9 @@
-import Turnstone from 'turnstone'
+import Turnstone from 'turnstone';
+import { API_ENDPOINTS, SEARCH_CONFIG, UI_CONFIG } from '../constants/config';
+
+/**
+ * Styles configuration for Turnstone component
+ */
 const styles = {
   input: 'w-full border py-2 px-4 text-lg outline-none rounded-md',
   listbox: 'bg-neutral-900 w-full text-slate-50 rounded-md',
@@ -10,61 +15,87 @@ const styles = {
   noItems: 'cursor-default text-center my-20',
   match: 'font-semibold',
   groupHeading: 'px-5 py-3 text-blue-500 font-bold',
-}
+};
 
-
+/**
+ * Fetches search results from Docker Hub API
+ * @param {string} query - Search query
+ * @returns {Array} Listbox configuration for Turnstone
+ */
 const getListbox = async (query) => {
+  // Fetch verified/official images
   const storeRes = await fetch(
-    `https://dockertar.zapto.org/dockerhub/api/search/v3/catalog/search?query=${query}&source=store&official=true&open_source=true&from=0&size=4&type=image`
-  )
-  const storeData = await storeRes.json()
-  const storeDataResults = storeData.results || []
+    `${API_ENDPOINTS.DOCKERHUB_SEARCH}?query=${query}&source=${SEARCH_CONFIG.VERIFIED_IMAGES.source}&official=${SEARCH_CONFIG.VERIFIED_IMAGES.official}&open_source=${SEARCH_CONFIG.VERIFIED_IMAGES.open_source}&from=0&size=${SEARCH_CONFIG.VERIFIED_IMAGES.size}&type=image`
+  );
+  const storeData = await storeRes.json();
+  const storeDataResults = storeData.results || [];
 
-  const comunityRes = await fetch(
-    `https://dockertar.zapto.org/dockerhub/api/search/v3/catalog/search?query=${query}&source=community&from=0&size=4&type=image`
-  )
-  const comunityData = await comunityRes.json()
-  const comunityDataResults = comunityData.results || []
+  // Fetch community images
+  const communityRes = await fetch(
+    `${API_ENDPOINTS.DOCKERHUB_SEARCH}?query=${query}&source=${SEARCH_CONFIG.COMMUNITY_IMAGES.source}&from=0&size=${SEARCH_CONFIG.COMMUNITY_IMAGES.size}&type=image`
+  );
+  const communityData = await communityRes.json();
+  const communityDataResults = communityData.results || [];
 
-  const allResults = [...storeDataResults, ...comunityDataResults]
-  const exactMatch = allResults.find(item => item.name === query)
+  // Check for exact matches
+  const allResults = [...storeDataResults, ...communityDataResults];
+  const exactMatch = allResults.find(item => item.name === query);
 
-  const baseListbox = [{
-    name: "Verified Images",
-    displayField: 'name',
-    data: async () => storeDataResults,
-    searchType: 'startsWith',
-  },{
-    name: "Community Images", 
-    displayField: 'name',
-    data: async () => comunityDataResults,
-    searchType: 'startsWith',
-  }]
+  // Build listbox configuration
+  const baseListbox = [
+    {
+      name: "Verified Images",
+      displayField: 'name',
+      data: async () => storeDataResults,
+      searchType: 'startsWith',
+    },
+    {
+      name: "Community Images", 
+      displayField: 'name',
+      data: async () => communityDataResults,
+      searchType: 'startsWith',
+    }
+  ];
 
+  // Add explicit name option if no exact match found
   if (!exactMatch && query.trim()) {
     baseListbox.push({
       name: "Explicit Name - Not found in Docker Hub",
       displayField: 'name',
       data: () => {
-        const queryObject = {"name":query,"rate_plans":[{"repositories": [{"namespace": "_"}]}]}
-        return [queryObject]
+        const queryObject = {
+          "name": query,
+          "rate_plans": [{"repositories": [{"namespace": "_"}]}]
+        };
+        return [queryObject];
       }
-    })
+    });
   }
 
-  return baseListbox
-}
+  return baseListbox;
+};
 
+/**
+ * Custom item component for search results
+ * @param {Object} props - Component props
+ * @param {Object} props.item - Search result item
+ * @returns {JSX.Element} Item component
+ */
 const Item = ({ item }) => {
-  // const avatar = `${item.thumbnail.path}.${item.thumbnail.extension}`
   return (
     <div className='flex items-center cursor-pointer px-5 py-4'>
       <p>{item.name}</p>
     </div>
-  )
-}
+  );
+};
 
-
+/**
+ * SearchBox component for Docker image search functionality
+ * @param {Object} props - Component props
+ * @param {Function} props.onSelect - Callback for item selection
+ * @param {Function} props.onChange - Callback for input changes
+ * @returns {JSX.Element} SearchBox component
+ */
 const SearchBox = (props) => {
   return (
     <Turnstone
@@ -73,7 +104,7 @@ const SearchBox = (props) => {
       autoFocus={true}
       typeahead={true}
       clearButton={true}
-      debounceWait={250}
+      debounceWait={UI_CONFIG.DEBOUNCE_DELAY}
       listboxIsImmutable={false}
       maxItems={9}
       noItemsMessage="No Images Found"
@@ -82,10 +113,9 @@ const SearchBox = (props) => {
       styles={styles}
       Item={Item}
       {...props}
-      // text='Iron M'
     />
-  )
-}
+  );
+};
 
 
 

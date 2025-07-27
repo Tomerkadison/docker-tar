@@ -176,9 +176,11 @@ const TagSelect = (props) => {
                         style={{
                             padding: '8px 12px',
                             cursor: 'pointer',
-                            background: '#1a73e8',
-                            color: 'white',
-                            fontWeight: 'bold'
+                            background: '#e3f2fd',
+                            color: '#1976d2',
+                            fontWeight: 'normal',
+                            borderTop: '1px solid #bbdefb',
+                            borderBottom: '1px solid #bbdefb'
                         }}
                         onClick={() => {
                             console.log("Custom tag clicked:", inputValue); // Debug log
@@ -197,15 +199,18 @@ const TagSelect = (props) => {
                     <div
                         className="explicit-option"
                         style={{
-                            padding: '8px 12px',
+                            padding: '6px 10px',
                             cursor: 'pointer',
                             background: '#f8f9fa',
-                            color: '#333',
-                            fontWeight: 'normal'
+                            color: '#6c757d',
+                            fontWeight: 'normal',
+                            fontSize: '0.9em',
+                            borderTop: '1px solid #e9ecef',
+                            borderBottom: '1px solid #e9ecef'
                         }}
                         onClick={handleEmptyTagClick}
                     >
-                        Use: ""
+                        Use empty tag
                     </div>
                 )}
                 {hasMore && optionsArray.length > 0 && (
@@ -232,15 +237,6 @@ const TagSelect = (props) => {
         );
     };
     
-    // Filter function that allows showing options that match input
-    const filterOption = (option, inputValue) => {
-        if (!inputValue) return true;
-        
-        // If this is a divider or group heading, show it
-        if (option.data.__isNew__ || option.data.value === undefined) return true;
-        
-        return option.data.label.toLowerCase().includes(inputValue.toLowerCase());
-    };
 
     // Handle empty tag selection with Enter key
     const handleKeyDown = (event) => {

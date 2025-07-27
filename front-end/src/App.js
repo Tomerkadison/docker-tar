@@ -93,7 +93,7 @@ function App() {
         setIsTagsLoading(false);
       });
     }
-  }, [selectedImage]);
+  }, [selectedImage]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   const downloadFile = (url, fileName) => {
@@ -171,10 +171,14 @@ function App() {
 
   function handleDownload() {
     setCurrentPage("LoadingPage")
-    downloadFile(
-      `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&image_tag=${selectedImageTag}`,
-      `${selectedImage.name}-${selectedImageTag}.tar`
-    )
+    const tagToUse = emptyTagSelected ? '' : selectedImageTag;
+    const url = emptyTagSelected 
+      ? `https://dockertar.zapto.org/install?image_name=${selectedImage.name}`
+      : `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&image_tag=${tagToUse}`;
+    const filename = emptyTagSelected 
+      ? `${selectedImage.name}-latest.tar`
+      : `${selectedImage.name}-${tagToUse}.tar`;
+    downloadFile(url, filename)
   }
 
 
@@ -240,11 +244,11 @@ return (
             )}
 
             <Button 
-              disabled={!selectedImage || !emptyTagSelected} 
-              type={(selectedImage && emptyTagSelected) ? 'primary' : 'dashed'} 
+              disabled={!selectedImage || (selectedImageTag === null && !emptyTagSelected)} 
+              type={(selectedImage && (selectedImageTag !== null || emptyTagSelected)) ? 'primary' : 'dashed'} 
               size="large"
               className={`${
-                (selectedImage && emptyTagSelected)
+                (selectedImage && (selectedImageTag !== null || emptyTagSelected))
                   ? 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 md:py-6 px-6 md:px-10 rounded-lg text-xl md:text-2xl items-center justify-center flex' 
                   : 'bg-gray-300 text-white font-bold py-4 md:py-6 px-6 md:px-10 rounded-lg text-xl md:text-2xl items-center justify-center flex'
               }`}

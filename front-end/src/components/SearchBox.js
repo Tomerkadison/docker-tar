@@ -13,41 +13,47 @@ const styles = {
 }
 
 
-const listbox = [{
-  
-  name: "Verified Images",
-  displayField: 'name',
-  data: async (query) => {
-    const storeRes = await fetch(
-      `https://dockertar.zapto.org/dockerhub/api/search/v3/catalog/search?query=${query}&source=store&official=true&open_source=true&from=0&size=4&type=image`
-    )
-    const storeData = await storeRes.json()
-    const storeDataResults = storeData.results
-    return storeDataResults
-  },
-  searchType: 'startsWith',
-},{
-  name: "Community Images",
-  displayField: 'name',
-  data: async (query) => {
-    const comunityRes = await fetch(
-      `https://dockertar.zapto.org/dockerhub/api/search/v3/catalog/search?query=${query}&source=community&from=0&size=4&type=image`
-    )
-    const comunityData = await comunityRes.json()
-    const comunityDataResults = comunityData.results
-    return comunityDataResults
-  },
-  searchType: 'startsWith',
-},
-{
-  name: "Your Explicit Image",
-  displayField: 'name',
-  data: (query) => {
-    const queryObject = {"name":query,"rate_plans":[{"repositories": [{"namespace": "_"}]}]}
-    return [queryObject]
+const getListbox = async (query) => {
+  const storeRes = await fetch(
+    `https://dockertar.zapto.org/dockerhub/api/search/v3/catalog/search?query=${query}&source=store&official=true&open_source=true&from=0&size=4&type=image`
+  )
+  const storeData = await storeRes.json()
+  const storeDataResults = storeData.results || []
+
+  const comunityRes = await fetch(
+    `https://dockertar.zapto.org/dockerhub/api/search/v3/catalog/search?query=${query}&source=community&from=0&size=4&type=image`
+  )
+  const comunityData = await comunityRes.json()
+  const comunityDataResults = comunityData.results || []
+
+  const allResults = [...storeDataResults, ...comunityDataResults]
+  const exactMatch = allResults.find(item => item.name === query)
+
+  const baseListbox = [{
+    name: "Verified Images",
+    displayField: 'name',
+    data: async () => storeDataResults,
+    searchType: 'startsWith',
+  },{
+    name: "Community Images", 
+    displayField: 'name',
+    data: async () => comunityDataResults,
+    searchType: 'startsWith',
+  }]
+
+  if (!exactMatch && query.trim()) {
+    baseListbox.push({
+      name: "Explicit Name - Not found in Docker Hub",
+      displayField: 'name',
+      data: () => {
+        const queryObject = {"name":query,"rate_plans":[{"repositories": [{"namespace": "_"}]}]}
+        return [queryObject]
+      }
+    })
   }
+
+  return baseListbox
 }
-]
 
 const Item = ({ item }) => {
   // const avatar = `${item.thumbnail.path}.${item.thumbnail.extension}`
@@ -68,11 +74,11 @@ const SearchBox = (props) => {
       typeahead={true}
       clearButton={true}
       debounceWait={250}
-      listboxIsImmutable={true}
+      listboxIsImmutable={false}
       maxItems={9}
       noItemsMessage="No Images Found"
       placeholder='Search for an image'
-      listbox={listbox}
+      listbox={getListbox}
       styles={styles}
       Item={Item}
       {...props}

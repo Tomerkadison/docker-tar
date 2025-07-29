@@ -178,6 +178,7 @@ return (
                   options={imageTags} 
                   isDisabled={!selectedImage} 
                   isLoading={isTagsLoading}
+                  selectedImage={selectedImage}
                   onChange={handleImageTagSelect}
                 />
               </div>

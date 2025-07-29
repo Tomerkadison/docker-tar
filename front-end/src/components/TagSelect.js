@@ -122,11 +122,27 @@ const filterAndSortOptions = (options, inputValue) => {
 };
 
 const TagSelect = (props) => {
-    // Extract options and isLoading from props
-    const { options, isLoading, onChange, ...otherProps } = props;
+    // Extract options, isLoading, and selectedImage from props
+    const { options, isLoading, onChange, selectedImage, ...otherProps } = props;
     
     const [inputValue, setInputValue] = useState('');
     const [filteredOptions, setFilteredOptions] = useState(options || []);
+    
+    // Helper function to determine if the selected image is explicit (not from Docker Hub)
+    const isExplicitImage = () => {
+        if (!selectedImage) return false;
+        
+        // Check if this is an explicit image by looking at its structure
+        // Explicit images have minimal rate_plans structure and come from "Explicit Name" section
+        const hasMinimalStructure = selectedImage.rate_plans && 
+                                   selectedImage.rate_plans[0] && 
+                                   selectedImage.rate_plans[0].repositories && 
+                                   selectedImage.rate_plans[0].repositories[0] &&
+                                   selectedImage.rate_plans[0].repositories[0].namespace === "_" &&
+                                   !selectedImage.rate_plans[0].repositories[0].name;
+        
+        return hasMinimalStructure;
+    };
     
     // Update filtered options when options or input value changes
     useEffect(() => {
@@ -155,15 +171,16 @@ const TagSelect = (props) => {
             option.data.value === inputValue
         );
         
-        // Only show explicit option if input doesn't match any option AND is not empty
+        // Only show explicit option if input doesn't match any option AND is not empty AND is explicit image
         const shouldShowExplicitOption = 
+            isExplicitImage() &&
             inputValue !== null && 
             inputValue !== undefined && 
             inputValue !== '' && 
             !matchingOption;
             
-        // Always show empty tag option when input is empty
-        const showEmptyOption = inputValue === '';
+        // Only show empty tag option when input is empty AND is explicit image
+        const showEmptyOption = isExplicitImage() && inputValue === '';
         
         // Handle clicking the empty tag option
         const handleEmptyTagClick = () => {

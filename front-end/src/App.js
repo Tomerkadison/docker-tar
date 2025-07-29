@@ -3,7 +3,7 @@ import TagSelect from './components/TagSelect';
 import './App.css';
 import { Button } from "antd";
 import { DownloadOutlined } from '@ant-design/icons';
-import { getImageTags } from './components/TagSelect';
+import { getAllImageTags } from './components/TagSelect';
 import React, { useState, useRef, useEffect } from 'react';
 
 function App() {
@@ -11,13 +11,12 @@ function App() {
   const [imageTags, setImageTags] = useState(null);
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const [currentPage, setCurrentPage] = useState("StartingPage");
-  const [tagPaginationInfo, setTagPaginationInfo] = useState(null);
   const [emptyTagSelected, setEmptyTagSelected] = useState(false);
   const [isTagsLoading, setIsTagsLoading] = useState(false);
   const imageTagRef = useRef();
 
-  // Function to fetch image tags with pagination
-  const fetchImageTags = async (page = 1) => {
+  // Function to fetch all image tags at once
+  const fetchAllImageTags = async () => {
     if (!selectedImage) return;
     
     try {
@@ -30,66 +29,30 @@ function App() {
         const imageNamespace = selectedImage.rate_plans[0].repositories[0].namespace;
         
         try {
-          const result = await getImageTags(imageNamespace, imageName, page);
-          
-          if (result.tags) {
-            // If this is the first page, replace tags
-            // Otherwise, append to existing tags
-            if (page === 1) {
-              setImageTags(result.tags);
-            } else {
-              setImageTags(prevTags => [...prevTags, ...result.tags]);
-            }
-            
-            // Update pagination info
-            setTagPaginationInfo({
-              hasMore: result.hasMore,
-              count: result.count
-            });
-          } else {
-            // Handle old format or error response
-            console.warn("Unexpected response format:", result);
-            if (page === 1) {
-              setImageTags(Array.isArray(result) ? result : []);
-              setTagPaginationInfo({ hasMore: false, count: Array.isArray(result) ? result.length : 0 });
-            }
-          }
+          const allTags = await getAllImageTags(imageNamespace, imageName);
+          setImageTags(allTags);
         } catch (error) {
           console.warn("Error fetching tags:", error);
           // If API fetch fails, set empty array to allow manual tag entry
-          if (page === 1) {
-            setImageTags([]);
-            setTagPaginationInfo({ hasMore: false, count: 0 });
-          }
+          setImageTags([]);
         }
       } else {
         // For explicitly entered images without proper structure
-        if (page === 1) {
-          setImageTags([]);
-          setTagPaginationInfo({ hasMore: false, count: 0 });
-        }
+        setImageTags([]);
       }
     } catch (error) {
-      console.warn("Error in fetchImageTags:", error);
-      if (page === 1) {
-        setImageTags([]);
-        setTagPaginationInfo({ hasMore: false, count: 0 });
-      }
+      console.warn("Error in fetchAllImageTags:", error);
+      setImageTags([]);
     }
   };
 
-  // Load more tags when the "Show More" button is clicked
-  const handleLoadMoreTags = (nextPage) => {
-    fetchImageTags(nextPage);
-  };
 
   useEffect(() => {
     if (selectedImage) {
-      // Reset tags and fetch first page when image changes
+      // Reset tags and fetch all tags when image changes
       setImageTags([]);
-      setTagPaginationInfo(null);
       setIsTagsLoading(true);
-      fetchImageTags(1).finally(() => {
+      fetchAllImageTags().finally(() => {
         setIsTagsLoading(false);
       });
     }
@@ -216,8 +179,6 @@ return (
                   isDisabled={!selectedImage} 
                   isLoading={isTagsLoading}
                   onChange={handleImageTagSelect}
-                  paginationInfo={tagPaginationInfo}
-                  onLoadMore={handleLoadMoreTags}
                 />
               </div>
             </div>

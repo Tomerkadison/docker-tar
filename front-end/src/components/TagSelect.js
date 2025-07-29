@@ -3,51 +3,87 @@ import Select from 'react-select';
 //import { Select } from 'antd'
 import { components } from 'react-select';
 
-async function getImageTags(namespace, image, page = 1) {
+async function getAllImageTags(namespace, image) {
     try {
-        const imageTagsRes = await fetch(
-            `https://dockertar.zapto.org/dockerhub/v2/repositories/${namespace}/${image}/tags/?page_size=100&page=${page}&name&ordering`
+        // First, fetch the first page to get the total count
+        const firstPageRes = await fetch(
+            `https://dockertar.zapto.org/dockerhub/v2/repositories/${namespace}/${image}/tags/?page_size=100&page=1&name&ordering`
         );
-        if (!imageTagsRes.ok) {
-            return { tags: [], hasMore: false }; // Return empty array for non-200 responses
+        
+        if (!firstPageRes.ok) {
+            return []; // Return empty array for non-200 responses
         }
-        const imageTagsData = await imageTagsRes.json();
-        const imageTags = imageTagsData.results || [];
-
-        // Only add 'latest' if there are no tags and it's not already present
-        if (imageTags.length === 0 && page === 1) {
-            return { 
-                tags: [{ value: 'latest', label: 'latest' }],
-                hasMore: false,
-                count: 1
-            };
+        
+        const firstPageData = await firstPageRes.json();
+        const totalCount = firstPageData.count || 0;
+        const firstPageTags = firstPageData.results || [];
+        
+        // If there are no tags, return default latest tag
+        if (totalCount === 0) {
+            return [{ value: 'latest', label: 'latest' }];
         }
-
-        const imageTagsOptions = imageTags.map(tag => {
-            return { 
-                value: tag.name, 
+        
+        // If all tags fit in the first page, return them
+        if (totalCount <= 100) {
+            return firstPageTags.map(tag => ({
+                value: tag.name,
                 label: tag.name
-            };
+            }));
+        }
+        
+        // Calculate how many additional pages we need
+        const totalPages = Math.ceil(totalCount / 100);
+        const additionalPages = [];
+        
+        // Create promises for all remaining pages
+        for (let page = 2; page <= totalPages; page++) {
+            additionalPages.push(
+                fetch(`https://dockertar.zapto.org/dockerhub/v2/repositories/${namespace}/${image}/tags/?page_size=100&page=${page}&name&ordering`)
+                    .then(res => res.ok ? res.json() : { results: [] })
+                    .catch(() => ({ results: [] }))
+            );
+        }
+        
+        // Fetch all additional pages concurrently
+        const additionalPagesData = await Promise.all(additionalPages);
+        
+        // Combine all tags
+        let allTags = [...firstPageTags];
+        additionalPagesData.forEach(pageData => {
+            if (pageData.results) {
+                allTags = [...allTags, ...pageData.results];
+            }
         });
-
-        // Check if there are more pages
-        const count = imageTagsData.count || 0;
-        const hasMore = page * 100 < count;
-
-        return {
-            tags: imageTagsOptions,
-            hasMore,
-            count
-        };
+        
+        // Convert to options format
+        return allTags.map(tag => ({
+            value: tag.name,
+            label: tag.name
+        }));
+        
     } catch (error) {
-        console.warn("Error fetching image tags:", error);
-        // Return empty array on error, we'll handle this in the UI
+        console.warn("Error fetching all image tags:", error);
+        return []; // Return empty array on error
+    }
+}
+
+// Legacy function kept for backward compatibility - now calls getAllImageTags
+async function getImageTags(namespace, image, page = 1) {
+    if (page === 1) {
+        const allTags = await getAllImageTags(namespace, image);
         return {
-            tags: [],
+            tags: allTags,
             hasMore: false,
-            count: 0
+            count: allTags.length
         };
     }
+    
+    // For pages > 1, return empty (since we now fetch everything at once)
+    return {
+        tags: [],
+        hasMore: false,
+        count: 0
+    };
 }
 
 // Function to filter and sort options based on input value
@@ -91,24 +127,6 @@ const TagSelect = (props) => {
     
     const [inputValue, setInputValue] = useState('');
     const [filteredOptions, setFilteredOptions] = useState(options || []);
-    const [hasMore, setHasMore] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalCount, setTotalCount] = useState(0);
-    
-    // Update state when pagination info is provided
-    useEffect(() => {
-        if (props.paginationInfo) {
-            setHasMore(props.paginationInfo.hasMore);
-            setTotalCount(props.paginationInfo.count);
-        }
-    }, [props.paginationInfo]);
-    
-    // Reset pagination when options are reset
-    useEffect(() => {
-        if (!props.options || props.options.length === 0) {
-            setCurrentPage(1);
-        }
-    }, [props.options]);
     
     // Update filtered options when options or input value changes
     useEffect(() => {
@@ -122,16 +140,8 @@ const TagSelect = (props) => {
         value: label
     });
     
-    // Function to load more tags
-    const loadMoreTags = async () => {
-        if (!hasMore || !props.onLoadMore) return;
-        
-        const nextPage = currentPage + 1;
-        setCurrentPage(nextPage);
-        props.onLoadMore(nextPage);
-    };
     
-    // Custom menu component to show "Use: <input>" option and "Show More" button
+    // Custom menu component to show "Use: <input>" option and empty tag option
     const Menu = (props) => {
         const { options, children } = props;
         
@@ -213,26 +223,6 @@ const TagSelect = (props) => {
                         Use empty tag
                     </div>
                 )}
-                {hasMore && optionsArray.length > 0 && (
-                    <div
-                        className="show-more-option"
-                        style={{
-                            padding: '8px 12px',
-                            cursor: 'pointer',
-                            background: '#4CAF50',
-                            color: 'white',
-                            fontWeight: 'bold',
-                            textAlign: 'center',
-                            marginTop: '8px'
-                        }}
-                        onClick={(e) => {
-                            e.stopPropagation(); // Prevent menu from closing
-                            loadMoreTags();
-                        }}
-                    >
-                        Show More Tags ({optionsArray.length} of {totalCount})
-                    </div>
-                )}
             </components.Menu>
         );
     };
@@ -288,5 +278,5 @@ const TagSelect = (props) => {
     );
 }
 
-export { getImageTags }
+export { getImageTags, getAllImageTags }
 export default TagSelect

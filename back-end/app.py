@@ -1,3 +1,4 @@
+import os
 import time
 
 import docker
@@ -7,14 +8,20 @@ from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
+# Environment configuration
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", 8080))
+DOCKER_TIMEOUT = int(os.getenv("DOCKER_TIMEOUT", 650))
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
+
 app = FastAPI()
-client = docker.from_env(timeout=650)
+client = docker.from_env(timeout=DOCKER_TIMEOUT)
 global current_time
 global total_time
-origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -52,4 +59,5 @@ async def install_image(image_name: str, background_tasks: BackgroundTasks, imag
     return StreamingResponse(saved_image, headers=headers, media_type='application/x-tar')
 
 
-uvicorn.run(app, port=8080,host="0.0.0.0")
+if __name__ == "__main__":
+    uvicorn.run(app, host=HOST, port=PORT)

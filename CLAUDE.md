@@ -1,13 +1,13 @@
 # Docker Tar Project - Claude Code Documentation
 
 ## Project Overview
-**Docker Tar** is a web application that allows users to download Docker images as tar files without requiring a local Docker installation. Users can search for images, select tags, and download complete Docker images directly from their browser.
+**Docker Tar** is an open source web application that allows users to download Docker images as tar files without requiring a local Docker installation. Users can search for images, select tags, and download complete Docker images directly from their browser.
 
 ## Architecture
 - **Frontend**: React.js (18.1.0) with Tailwind CSS and Ant Design
 - **Backend**: Python FastAPI with Docker SDK
-- **Deployment**: Nginx reverse proxy
-- **Domain**: dockertar.zapto.org (production)
+- **Deployment**: Nginx reverse proxy with configurable environment
+- **Deployment Agnostic**: Configurable for any domain/infrastructure
 - **No Database**: Stateless application using Docker Hub APIs
 
 ## Directory Structure

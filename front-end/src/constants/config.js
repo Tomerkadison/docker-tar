@@ -1,11 +1,29 @@
 /**
  * Application configuration constants
+ * Uses environment variables for deployment flexibility
  */
 
+// Get base URL from environment or default to current host
+const getBaseURL = () => {
+  if (process.env.REACT_APP_API_BASE_URL) {
+    return process.env.REACT_APP_API_BASE_URL;
+  }
+  
+  // In development, use localhost
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:8080';
+  }
+  
+  // In production, use current host
+  return window.location.origin;
+};
+
+const BASE_URL = getBaseURL();
+
 export const API_ENDPOINTS = {
-  DOCKERHUB_SEARCH: 'https://dockertar.zapto.org/dockerhub/api/search/v3/catalog/search',
-  DOCKERHUB_TAGS: 'https://dockertar.zapto.org/dockerhub/v2/repositories',
-  DOWNLOAD_SERVICE: 'https://dockertar.zapto.org/install'
+  DOCKERHUB_SEARCH: `${BASE_URL}/dockerhub/api/search/v3/catalog/search`,
+  DOCKERHUB_TAGS: `${BASE_URL}/dockerhub/v2/repositories`,
+  DOWNLOAD_SERVICE: `${BASE_URL}/install`
 };
 
 export const SEARCH_CONFIG = {

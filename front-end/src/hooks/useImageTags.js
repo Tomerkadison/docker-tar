@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getImageTags } from '../services/dockerHubApi';
+import { getAllImageTags } from '../services/dockerHubApi';
 
 /**
  * Custom hook for managing Docker image tags
@@ -14,10 +14,9 @@ export const useImageTags = (selectedImage) => {
   const [emptyTagSelected, setEmptyTagSelected] = useState(false);
 
   /**
-   * Fetches image tags with pagination support
-   * @param {number} page - Page number to fetch
+   * Fetches all image tags at once using async pagination
    */
-  const fetchImageTags = useCallback(async (page = 1) => {
+  const fetchAllImageTags = useCallback(async () => {
     if (!selectedImage) return;
     
     try {
@@ -27,63 +26,38 @@ export const useImageTags = (selectedImage) => {
         const imageNamespace = selectedImage.rate_plans[0].repositories[0].namespace;
         
         try {
-          const result = await getImageTags(imageNamespace, imageName, page);
-          
-          if (result.tags) {
-            // If this is the first page, replace tags; otherwise, append
-            if (page === 1) {
-              setImageTags(result.tags);
-            } else {
-              setImageTags(prevTags => [...prevTags, ...result.tags]);
-            }
-            
-            // Update pagination info
-            setTagPaginationInfo({
-              hasMore: result.hasMore,
-              count: result.count
-            });
-          } else {
-            // Handle unexpected response format
-            console.warn('Unexpected response format:', result);
-            if (page === 1) {
-              setImageTags(Array.isArray(result) ? result : []);
-              setTagPaginationInfo({ 
-                hasMore: false, 
-                count: Array.isArray(result) ? result.length : 0 
-              });
-            }
-          }
+          const allTags = await getAllImageTags(imageNamespace, imageName);
+          setImageTags(allTags);
+          setTagPaginationInfo({ 
+            hasMore: false, 
+            count: allTags.length 
+          });
         } catch (error) {
           console.warn('Error fetching tags:', error);
           // Set empty array to allow manual tag entry on API failure
-          if (page === 1) {
-            setImageTags([]);
-            setTagPaginationInfo({ hasMore: false, count: 0 });
-          }
-        }
-      } else {
-        // For explicitly entered images without proper structure
-        if (page === 1) {
           setImageTags([]);
           setTagPaginationInfo({ hasMore: false, count: 0 });
         }
-      }
-    } catch (error) {
-      console.warn('Error in fetchImageTags:', error);
-      if (page === 1) {
+      } else {
+        // For explicitly entered images without proper structure
         setImageTags([]);
         setTagPaginationInfo({ hasMore: false, count: 0 });
       }
+    } catch (error) {
+      console.warn('Error in fetchAllImageTags:', error);
+      setImageTags([]);
+      setTagPaginationInfo({ hasMore: false, count: 0 });
     }
   }, [selectedImage]);
 
   /**
-   * Handles loading more tags (pagination)
+   * Legacy function for compatibility - no longer used since we fetch all at once
    * @param {number} nextPage - Next page to load
    */
   const handleLoadMoreTags = useCallback((nextPage) => {
-    fetchImageTags(nextPage);
-  }, [fetchImageTags]);
+    // No-op since we now fetch all tags at once
+    console.log('Load more tags called, but not needed since all tags are fetched at once');
+  }, []);
 
   /**
    * Handles image tag selection
@@ -122,15 +96,15 @@ export const useImageTags = (selectedImage) => {
   // Effect to fetch tags when selected image changes
   useEffect(() => {
     if (selectedImage) {
-      // Reset tags and fetch first page when image changes
+      // Reset tags and fetch all tags when image changes
       setImageTags([]);
       setTagPaginationInfo(null);
       setIsTagsLoading(true);
-      fetchImageTags(1).finally(() => {
+      fetchAllImageTags().finally(() => {
         setIsTagsLoading(false);
       });
     }
-  }, [selectedImage, fetchImageTags]);
+  }, [selectedImage, fetchAllImageTags]);
 
   return {
     imageTags,

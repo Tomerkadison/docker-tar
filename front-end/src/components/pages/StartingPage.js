@@ -58,9 +58,8 @@ const StartingPage = ({
             options={imageTags} 
             isDisabled={!selectedImage} 
             isLoading={isTagsLoading}
+            selectedImage={selectedImage}
             onChange={onImageTagSelect}
-            paginationInfo={tagPaginationInfo}
-            onLoadMore={onLoadMoreTags}
           />
         </div>
       </div>

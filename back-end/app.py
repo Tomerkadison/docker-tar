@@ -33,19 +33,31 @@ def delete_image(image_name: str, image_tag: str):
 
 
 @app.get("/install/image-tar")
-async def install_image(image_name: str, background_tasks: BackgroundTasks, image_tag: str = ""):
+async def install_image(image_name: str, background_tasks: BackgroundTasks,token:str,image_tag: str = ""):
+    print("verifing...")
+    try:
+        data = data = {
+        'secret': "0x4AAAAAAB02nEkMAzN8uvVfayPGx5RPwyc",
+        'response': token
+    }
+        response = requests.post("https://challenges.cloudflare.com/turnstile/v0/siteverify", data=data, timeout=10)
+        response.raise_for_status()
+        print("Turnstile validation success!")
+    except requests.RequestException as e:
+        raise HTTPException("Failed Turnstile Verification",status_code=400)
     print("starting download: ", image_name,":",image_tag)
     background_tasks.add_task(delete_image, image_name, image_tag)
     start = time.time()
     global total_time
     total_time = time.time()
+
     image = client.images.pull(image_name, tag=image_tag)
     print("pulling: ", time.time() - start)
     if not image:
         raise HTTPException(status_code=500, detail="Failed to pull image")
     start = time.time()
     headers = {'Content-Disposition': f'attachment; filename="{image_name}.tar"'}
-    saved_image = image.save(named=True, chunk_size=DEFAULT_DATA_CHUNK_SIZE)
+    saved_image = image.sazve(named=True, chunk_size=DEFAULT_DATA_CHUNK_SIZE)
     print("saving: ", time.time() - start)
     global current_time
     current_time = time.time()

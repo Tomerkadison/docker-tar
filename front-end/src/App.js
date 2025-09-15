@@ -5,6 +5,8 @@ import { Button } from "antd";
 import { DownloadOutlined } from '@ant-design/icons';
 import { getAllImageTags } from './components/TagSelect';
 import React, { useState, useRef, useEffect } from 'react';
+import Turnstile from "react-turnstile";
+
 
 function App() {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -15,7 +17,10 @@ function App() {
   const [isTagsLoading, setIsTagsLoading] = useState(false);
   const imageTagRef = useRef();
 
-  // Function to fetch all image tags at once
+
+  const handleVerify = (token) => {
+    handleDownload(token)
+  };
   const fetchAllImageTags = async () => {
     if (!selectedImage) return;
     
@@ -132,15 +137,14 @@ function App() {
     }
   }
 
-  function handleDownload() {
+  function handleDownload(token) {
     setCurrentPage("LoadingPage")
-    const tagToUse = emptyTagSelected ? '' : selectedImageTag;
     const url = emptyTagSelected 
-      ? `https://dockertar.zapto.org/install?image_name=${selectedImage.name}`
-      : `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&image_tag=${tagToUse}`;
+      ? `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&token=${token}`
+      : `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&image_tag=${selectedImageTag}&token=${token}`;
     const filename = emptyTagSelected 
-      ? `${selectedImage.name}-latest.tar`
-      : `${selectedImage.name}-${tagToUse}.tar`;
+      ? `${selectedImage.name}.tar`
+      : `${selectedImage.name}-${selectedImageTag}.tar`;
     downloadFile(url, filename)
   }
 
@@ -214,7 +218,7 @@ return (
                   ? 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 md:py-6 px-6 md:px-10 rounded-lg text-xl md:text-2xl items-center justify-center flex' 
                   : 'bg-gray-300 text-white font-bold py-4 md:py-6 px-6 md:px-10 rounded-lg text-xl md:text-2xl items-center justify-center flex'
               }`}
-              onClick={handleDownload}
+              onClick={() => setCurrentPage("VerifyPage")}
             >
               Download Image Tar
               <DownloadOutlined className="ml-2" />
@@ -243,6 +247,15 @@ return (
           </>
         )}
 
+        {currentPage === "VerifyPage" && (
+          <div className='mt-20 mx-auto w-full flex justify-center items-center flex-col'>
+             <Turnstile
+              sitekey="0x4AAAAAAB02nGeNdVYltnlB"
+              onVerify={handleVerify}
+              theme="light"
+            />
+          </div>
+        )}
 
         {currentPage === "LoadingPage" && (
           <div className='mt-10 mx-auto w-full flex justify-center items-center flex-col'>

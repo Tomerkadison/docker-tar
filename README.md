@@ -1,11 +1,11 @@
-<div align="center">
+x<div align="center">
   <img src="front-end/public/docker-icon-new.png" alt="Docker Tar Logo" width="120" height="120">
   
   # Docker Tar
   
   **Download Docker Images as Tar Files - No Docker Required**
   
-  [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-dockertar.zapto.org-blue?style=for-the-badge)](https://dockertar.zapto.org)
+  [![Production Website](https://img.shields.io/badge/🌐_Prod_Website-dockertar.zapto.org-blue?style=for-the-badge)](https://dockertar.zapto.org)
   [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](#license)
   [![Python](https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python)](https://python.org)
   [![React](https://img.shields.io/badge/React-18.1+-61dafb?style=for-the-badge&logo=react)](https://reactjs.org)
@@ -22,7 +22,7 @@ Docker Tar solves a fundamental problem: **downloading Docker images without hav
 
 - 🔍 **Smart Search** - Search through millions of Docker Hub images with intelligent autocomplete
 - 🏷️ **Complete Tag Support** - Browse and select from all available image tags
-- ⚡ **Instant Downloads** - Stream images directly to your browser as tar files
+- ⚡ **Instant Downloads** - Download and stream images directly to your browser as tar files
 - 🎯 **No Installation Required** - Works entirely through your web browser
 - 🔒 **Secure & Clean** - Images are automatically cleaned up after download
 - 📱 **Responsive Design** - Works seamlessly on desktop and mobile devices
@@ -56,13 +56,10 @@ Docker Tar is built with modern web technologies for optimal performance and rel
 ### Backend
 - **FastAPI** - High-performance Python web framework
 - **Docker SDK** - Direct integration with Docker engine
-- **Streaming Response** - Efficient large file downloads
-- **Background Tasks** - Automatic cleanup and resource management
 
 ### Infrastructure
-- **Nginx** - Reverse proxy with SSL termination
-- **Let's Encrypt** - Free SSL certificates
-
+- **Nginx** - Reverse proxy for the the DockerHub API (Crucial for bypassing CORS), and also for the backend and frontend.
+  
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -85,6 +82,7 @@ Docker Tar is built with modern web technologies for optimal performance and rel
    pip install -r requirements.txt
    python app.py
    ```
+   * you might need to start it within wsl, if running docker desktop on windows with wsl.
 
 3. **Start the frontend**
    ```bash
@@ -100,7 +98,7 @@ Docker Tar is built with modern web technologies for optimal performance and rel
 
 ### Production Deployment
 
-For production deployment with SSL, configure Nginx as a reverse proxy to the backend and frontend services.
+For production deployment, configure Nginx as a reverse proxy to the backend, Dockerhub API and frontend services.
 
 ## 📡 API Reference
 
@@ -177,7 +175,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Live Demo**: [dockertar.zapto.org](https://dockertar.zapto.org)
+- **Live Production Website**: [dockertar.zapto.org](https://dockertar.zapto.org)
 - **Issues**: [GitHub Issues](https://github.com/yourusername/docker-tar/issues)
 - **Feedback**: [Google Form](https://forms.gle/Mr3vmAk5Fz81VRKh6)
 

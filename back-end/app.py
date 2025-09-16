@@ -6,6 +6,7 @@ from docker.constants import DEFAULT_DATA_CHUNK_SIZE
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+import requests
 
 app = FastAPI()
 client = docker.from_env(timeout=650)
@@ -42,9 +43,11 @@ async def install_image(image_name: str, background_tasks: BackgroundTasks,token
     }
         response = requests.post("https://challenges.cloudflare.com/turnstile/v0/siteverify", data=data, timeout=10)
         response.raise_for_status()
+        if not response.json()['success']:
+            raise HTTPException(detail="Failed Turnstile Validation",status_code=403)
         print("Turnstile validation success!")
     except requests.RequestException as e:
-        raise HTTPException("Failed Turnstile Verification",status_code=400)
+        raise HTTPException(detail="Failed Turnstile Request",status_code=500)
     print("starting download: ", image_name,":",image_tag)
     background_tasks.add_task(delete_image, image_name, image_tag)
     start = time.time()
@@ -57,7 +60,7 @@ async def install_image(image_name: str, background_tasks: BackgroundTasks,token
         raise HTTPException(status_code=500, detail="Failed to pull image")
     start = time.time()
     headers = {'Content-Disposition': f'attachment; filename="{image_name}.tar"'}
-    saved_image = image.sazve(named=True, chunk_size=DEFAULT_DATA_CHUNK_SIZE)
+    saved_image = image.save(named=True, chunk_size=DEFAULT_DATA_CHUNK_SIZE)
     print("saving: ", time.time() - start)
     global current_time
     current_time = time.time()

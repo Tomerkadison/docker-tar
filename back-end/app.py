@@ -2,11 +2,11 @@ import time
 
 import docker
 import uvicorn
-from docker.constants import DEFAULT_DATA_CHUNK_SIZE
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-import requests
+from install_steps import veirfy_token,pull_image,delete_image,save_image
+from metrics import IMAGE_DOWNLOADS_METRIC,IMAGE_FAILED_DOWNLOADS_METRIC
 
 app = FastAPI()
 client = docker.from_env(timeout=650)
@@ -22,49 +22,22 @@ app.add_middleware(
 )
 
 
-def delete_image(image_name: str, image_tag: str):
-    global current_time
-    global total_time
-    print("returning image: ", time.time() - current_time)
-    print("total: ", time.time() - total_time)
-    start = time.time()
-    print(client.images.get(f"{image_name}:{image_tag}"))
-    client.images.remove(f"{image_name}:{image_tag}")
-    print("deleting: ", time.time() - start)
-
-
 @app.get("/install/image-tar")
-async def install_image(image_name: str, background_tasks: BackgroundTasks,token:str,image_tag: str = ""):
-    print("verifing...")
+async def install_image(image_name: str,token:str,background_tasks: BackgroundTasks,image_tag: str = ""):
     try:
-        data = data = {
-        'secret': "0x4AAAAAAB02nEkMAzN8uvVfayPGx5RPwyc",
-        'response': token
-    }
-        response = requests.post("https://challenges.cloudflare.com/turnstile/v0/siteverify", data=data, timeout=10)
-        response.raise_for_status()
-        if not response.json()['success']:
-            raise HTTPException(detail="Failed Turnstile Validation",status_code=403)
-        print("Turnstile validation success!")
-    except requests.RequestException as e:
-        raise HTTPException(detail="Failed Turnstile Request",status_code=500)
-    print("starting download: ", image_name,":",image_tag)
-    background_tasks.add_task(delete_image, image_name, image_tag)
-    start = time.time()
-    global total_time
-    total_time = time.time()
+        #veirfy_token(token)
+        image = pull_image(image_name, image_tag)
+        saved_image = save_image(image)
+        background_tasks.add_task(delete_image, image_name, image_tag)
+        headers = {'Content-Disposition': f'attachment; filename="{image_name}.tar"'}
+        return StreamingResponse(saved_image, headers=headers, media_type='application/x-tar')
+    except:
+        IMAGE_FAILED_DOWNLOADS_METRIC.labels(image_name=image_name, image_tag=image_tag).inc()
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    finally:
+        IMAGE_DOWNLOADS_METRIC.labels(image_name=image_name, image_tag=image_tag).inc()
 
-    image = client.images.pull(image_name, tag=image_tag)
-    print("pulling: ", time.time() - start)
-    if not image:
-        raise HTTPException(status_code=500, detail="Failed to pull image")
-    start = time.time()
-    headers = {'Content-Disposition': f'attachment; filename="{image_name}.tar"'}
-    saved_image = image.save(named=True, chunk_size=DEFAULT_DATA_CHUNK_SIZE)
-    print("saving: ", time.time() - start)
-    global current_time
-    current_time = time.time()
-    return StreamingResponse(saved_image, headers=headers, media_type='application/x-tar')
+
 
 
 uvicorn.run(app, port=8080,host="0.0.0.0")

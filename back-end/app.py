@@ -25,9 +25,9 @@ app.add_middleware(
 @app.get("/install/image-tar")
 async def install_image(image_name: str,token:str,background_tasks: BackgroundTasks,image_tag: str = ""):
     try:
-        #veirfy_token(token)
+        veirfy_token(token, image_name, image_tag)
         image = pull_image(image_name, image_tag)
-        saved_image = save_image(image)
+        saved_image = save_image(image, image_name, image_tag)
         background_tasks.add_task(delete_image, image_name, image_tag)
         headers = {'Content-Disposition': f'attachment; filename="{image_name}.tar"'}
         return StreamingResponse(saved_image, headers=headers, media_type='application/x-tar')

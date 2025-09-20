@@ -6,6 +6,7 @@ import { DownloadOutlined } from '@ant-design/icons';
 import { getAllImageTags } from './components/TagSelect';
 import React, { useState, useRef, useEffect } from 'react';
 import Turnstile from "react-turnstile";
+import { tracer, initializeTracing } from './tracing';
 
 
 function App() {
@@ -17,9 +18,25 @@ function App() {
   const [isTagsLoading, setIsTagsLoading] = useState(false);
   const imageTagRef = useRef();
 
+  // Initialize tracing on component mount
+  useEffect(() => {
+    initializeTracing();
+  }, []);
+
 
   const handleVerify = (token) => {
-    handleDownload(token)
+    const span = tracer.startSpan("user_verification");
+    span.setAttributes({
+      'user.action': 'turnstile_verification',
+      'image.name': selectedImage?.name || 'unknown',
+      'image.tag': selectedImageTag || 'latest'
+    });
+
+    try {
+      handleDownload(token);
+    } finally {
+      span.end();
+    }
   };
   const fetchAllImageTags = async () => {
     if (!selectedImage) return;
@@ -65,7 +82,19 @@ function App() {
 
 
   const downloadFile = (url, fileName) => {
-    fetch(url)
+    const span = tracer.startSpan("download_file");
+    span.setAttributes({
+      'download.url': url,
+      'download.filename': fileName,
+      'user.action': 'file_download'
+    });
+
+    fetch(url, {
+      headers: {
+        // Propagate trace context to backend
+        'traceparent': `00-${span.spanContext().traceId}-${span.spanContext().spanId}-01`
+      }
+    })
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -77,7 +106,12 @@ function App() {
         if (blob.size < 10) {
           throw new Error(`Received empty file (${blob.size} KB). Backend operation failed.`);
         }
-        
+
+        span.setAttributes({
+          'download.size_bytes': blob.size,
+          'download.status': 'success'
+        });
+
         const url = window.URL.createObjectURL(new Blob([blob]));
         const link = document.createElement("a");
         link.href = url;
@@ -92,8 +126,15 @@ function App() {
       })
       .catch((error) => {
         console.error("Download error:", error);
+        span.setAttributes({
+          'download.status': 'error',
+          'download.error': error.message
+        });
         alert("Failed to download image... Try again later");
         setCurrentPage("StartingPage");
+      })
+      .finally(() => {
+        span.end();
       });
   };
 
@@ -138,14 +179,26 @@ function App() {
   }
 
   function handleDownload(token) {
-    setCurrentPage("LoadingPage")
-    const url = emptyTagSelected 
-      ? `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&token=${token}`
-      : `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&image_tag=${selectedImageTag}&token=${token}`;
-    const filename = emptyTagSelected 
-      ? `${selectedImage.name}.tar`
-      : `${selectedImage.name}-${selectedImageTag}.tar`;
-    downloadFile(url, filename)
+    const span = tracer.startSpan("user_download_request");
+    span.setAttributes({
+      'user.action': 'download_button_click',
+      'image.name': selectedImage?.name || 'unknown',
+      'image.tag': selectedImageTag || 'latest',
+      'user.token_provided': !!token
+    });
+
+    try {
+      setCurrentPage("LoadingPage");
+      const url = emptyTagSelected
+        ? `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&token=${token}`
+        : `http://localhost:8080/install/image-tar?image_name=${selectedImage.name}&image_tag=${selectedImageTag}&token=${token}`;
+      const filename = emptyTagSelected
+        ? `${selectedImage.name}.tar`
+        : `${selectedImage.name}-${selectedImageTag}.tar`;
+      downloadFile(url, filename);
+    } finally {
+      span.end();
+    }
   }
 
 

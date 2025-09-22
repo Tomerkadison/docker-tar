@@ -6,7 +6,6 @@ import { DownloadOutlined } from '@ant-design/icons';
 import { getAllImageTags } from './components/TagSelect';
 import React, { useState, useRef, useEffect } from 'react';
 import Turnstile from "react-turnstile";
-import { tracer, initializeTracing } from './tracing';
 
 
 function App() {
@@ -18,25 +17,9 @@ function App() {
   const [isTagsLoading, setIsTagsLoading] = useState(false);
   const imageTagRef = useRef();
 
-  // Initialize tracing on component mount
-  useEffect(() => {
-    initializeTracing();
-  }, []);
-
 
   const handleVerify = (token) => {
-    const span = tracer.startSpan("user_verification");
-    span.setAttributes({
-      'user.action': 'turnstile_verification',
-      'image.name': selectedImage?.name || 'unknown',
-      'image.tag': selectedImageTag || 'latest'
-    });
-
-    try {
-      handleDownload(token);
-    } finally {
-      span.end();
-    }
+    handleDownload(token);
   };
   const fetchAllImageTags = async () => {
     if (!selectedImage) return;
@@ -71,30 +54,17 @@ function App() {
 
   useEffect(() => {
     if (selectedImage) {
-      // Reset tags and fetch all tags when image changes
       setImageTags([]);
       setIsTagsLoading(true);
       fetchAllImageTags().finally(() => {
         setIsTagsLoading(false);
       });
     }
-  }, [selectedImage]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedImage]); // eslint-disable-next-line
 
 
-  const downloadFile = (url, fileName) => {
-    const span = tracer.startSpan("download_file");
-    span.setAttributes({
-      'download.url': url,
-      'download.filename': fileName,
-      'user.action': 'file_download'
-    });
-
-    fetch(url, {
-      headers: {
-        // Propagate trace context to backend
-        'traceparent': `00-${span.spanContext().traceId}-${span.spanContext().spanId}-01`
-      }
-    })
+  const downloadFile = (url, fileName,token) => {
+    fetch(url)
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -107,11 +77,6 @@ function App() {
           throw new Error(`Received empty file (${blob.size} KB). Backend operation failed.`);
         }
 
-        span.setAttributes({
-          'download.size_bytes': blob.size,
-          'download.status': 'success'
-        });
-
         const url = window.URL.createObjectURL(new Blob([blob]));
         const link = document.createElement("a");
         link.href = url;
@@ -122,19 +87,15 @@ function App() {
 
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
+        fetch(`http://localhost:8080/success?token=${token}`, { method: 'POST' }).catch((error) => {
+        console.error("Sucess sending error:", error);
+      });;
         setCurrentPage("SuccessPage");
       })
       .catch((error) => {
         console.error("Download error:", error);
-        span.setAttributes({
-          'download.status': 'error',
-          'download.error': error.message
-        });
         alert("Failed to download image... Try again later");
         setCurrentPage("StartingPage");
-      })
-      .finally(() => {
-        span.end();
       });
   };
 
@@ -179,26 +140,14 @@ function App() {
   }
 
   function handleDownload(token) {
-    const span = tracer.startSpan("user_download_request");
-    span.setAttributes({
-      'user.action': 'download_button_click',
-      'image.name': selectedImage?.name || 'unknown',
-      'image.tag': selectedImageTag || 'latest',
-      'user.token_provided': !!token
-    });
-
-    try {
-      setCurrentPage("LoadingPage");
-      const url = emptyTagSelected
-        ? `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&token=${token}`
-        : `http://localhost:8080/install/image-tar?image_name=${selectedImage.name}&image_tag=${selectedImageTag}&token=${token}`;
-      const filename = emptyTagSelected
-        ? `${selectedImage.name}.tar`
-        : `${selectedImage.name}-${selectedImageTag}.tar`;
-      downloadFile(url, filename);
-    } finally {
-      span.end();
-    }
+    setCurrentPage("LoadingPage");
+    const url = emptyTagSelected
+      ? `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&token=${token}`
+      : `http://localhost:8080/install/image-tar?image_name=${selectedImage.name}&image_tag=${selectedImageTag}&token=${token}`;
+    const filename = emptyTagSelected
+      ? `${selectedImage.name}.tar`
+      : `${selectedImage.name}-${selectedImageTag}.tar`;
+    downloadFile(url, filename,token);
   }
 
 

@@ -1,18 +1,15 @@
-import time
-
 import docker
 import uvicorn
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks,HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from install_steps import veirfy_token,pull_image,delete_image,save_image
-from metrics import IMAGE_DOWNLOADS_METRIC,IMAGE_FAILED_DOWNLOADS_METRIC
-from traces import tracer, instrument_fastapi
+
+from install_steps import veirfy_token, pull_image, delete_image, save_image
+from metrics import IMAGE_DOWNLOADS_METRIC, IMAGE_FAILED_DOWNLOADS_METRIC, IMAGE_SUCCESS_DOWNLOADS_METRIC
+from traces import trace,start_root_span, start_response_span, active_response_spans, active_root_spans
 
 app = FastAPI()
 client = docker.from_env(timeout=650)
-global current_time
-global total_time
 origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
@@ -22,32 +19,40 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Instrument FastAPI for automatic tracing
-instrument_fastapi(app)
-
-
 @app.get("/install/image-tar")
-async def install_image(image_name: str,token:str,background_tasks: BackgroundTasks,image_tag: str = ""):
-    with tracer.start_as_current_span("process_download_request") as span:
-        span.set_attributes({
-            "image.name": image_name,
-            "image.tag": image_tag or "latest"
-        })
-
+async def install_image(image_name: str, token: str, background_tasks: BackgroundTasks, image_tag: str = ""):
+        root_span = start_root_span(image_name, image_tag,token)
         try:
-            veirfy_token(token, image_name, image_tag)
-            image = pull_image(image_name, image_tag)
-            saved_image = save_image(image, image_name, image_tag)
-            background_tasks.add_task(delete_image, image_name, image_tag)
-            headers = {'Content-Disposition': f'attachment; filename="{image_name}.tar"'}
+            veirfy_token(token, image_name=image_name, image_tag=image_tag,root_span=root_span)
+            image = pull_image(image_name=image_name, image_tag=image_tag,root_span=root_span)
+            saved_image = save_image(image, image_name=image_name, image_tag=image_tag,root_span=root_span)
+            background_tasks.add_task(delete_image, image_name=image_name, image_tag=image_tag,root_span=root_span)
+            headers = {'Content-Disposition': f'attachment; filename="{image_name}.tar"','trace-id': str(root_span.get_span_context().trace_id)}
+            start_response_span(image_name,image_tag,token,root_span)
             return StreamingResponse(saved_image, headers=headers, media_type='application/x-tar')
-        except:
+        except Exception as e:
             IMAGE_FAILED_DOWNLOADS_METRIC.labels(image_name=image_name, image_tag=image_tag).inc()
-            raise HTTPException(status_code=500, detail="Internal Server Error")
+            root_span.record_exception(e)
+            root_span.set_status(trace.Status(trace.StatusCode.ERROR))
+            root_span.end()
+            raise e
         finally:
             IMAGE_DOWNLOADS_METRIC.labels(image_name=image_name, image_tag=image_tag).inc()
 
+@app.post("/success")
+def end_trace(token:str):
+    root_span = active_root_spans.pop(token,None)
+    response_span = active_response_spans.pop(token,None)
+    if root_span and response_span:
+        response_span.set_status(trace.Status(trace.StatusCode.OK))
+        root_span.set_status(trace.Status(trace.StatusCode.OK))
+        response_span.end()
+        root_span.end()
 
+        image_name = root_span._attributes._dict.get("image.name")
+        image_tag = root_span._attributes._dict.get("image.tag")
+        IMAGE_SUCCESS_DOWNLOADS_METRIC.labels(image_name=image_name, image_tag=image_tag).inc()
+        return f"Ended trace for token '{token}'"
+    raise HTTPException(status_code=500, detail="No active trace found")
 
-
-uvicorn.run(app, port=8080,host="0.0.0.0")
+uvicorn.run(app, port=8080, host="0.0.0.0")

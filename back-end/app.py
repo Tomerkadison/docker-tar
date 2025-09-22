@@ -5,7 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 from install_steps import veirfy_token, pull_image, delete_image, save_image
-from metrics import IMAGE_DOWNLOADS_METRIC, IMAGE_FAILED_DOWNLOADS_METRIC, IMAGE_SUCCESS_DOWNLOADS_METRIC
+from metrics import IMAGE_DOWNLOADS_METRIC, IMAGE_FAILED_DOWNLOADS_METRIC, IMAGE_SUCCESS_DOWNLOADS_METRIC, \
+    DOWNLOAD_BYTES_PER_SECOND
 from traces import trace,start_root_span, start_response_span, active_response_spans, active_root_spans
 
 app = FastAPI()
@@ -40,7 +41,7 @@ async def install_image(image_name: str, token: str, background_tasks: Backgroun
             IMAGE_DOWNLOADS_METRIC.labels(image_name=image_name, image_tag=image_tag).inc()
 
 @app.post("/success")
-def end_trace(token:str):
+def end_trace(token:str,size:int):
     root_span = active_root_spans.pop(token,None)
     response_span = active_response_spans.pop(token,None)
     if root_span and response_span:
@@ -52,6 +53,10 @@ def end_trace(token:str):
         image_name = root_span._attributes._dict.get("image.name")
         image_tag = root_span._attributes._dict.get("image.tag")
         IMAGE_SUCCESS_DOWNLOADS_METRIC.labels(image_name=image_name, image_tag=image_tag).inc()
+
+        duration_in_seconds = (root_span._end_time - root_span._start_time) / 1_000_000_000
+        DOWNLOAD_BYTES_PER_SECOND.set(size/duration_in_seconds)
+        
         return f"Ended trace for token '{token}'"
     raise HTTPException(status_code=500, detail="No active trace found")
 

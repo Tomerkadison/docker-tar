@@ -87,7 +87,7 @@ function App() {
 
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        fetch(`http://localhost:8080/success?token=${token}`, { method: 'POST' }).catch((error) => {
+        fetch(`http://localhost:8080/success?token=${token}&size=${blob.size}`, { method: 'POST' }).catch((error) => {
         console.error("Sucess sending error:", error);
       });;
         setCurrentPage("SuccessPage");

@@ -1,16 +1,16 @@
 import docker
 import uvicorn
-from fastapi import FastAPI, BackgroundTasks,HTTPException
+from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 from install_steps import veirfy_token, pull_image, delete_image, save_image
 from metrics import IMAGE_DOWNLOADS_METRIC, IMAGE_FAILED_DOWNLOADS_METRIC, IMAGE_SUCCESS_DOWNLOADS_METRIC, \
-    DOWNLOAD_BYTES_PER_SECOND
-from traces import trace,start_root_span, start_response_span, active_response_spans, active_root_spans
+    DOWNLOAD_BYTES_PER_SECOND, metrics_router
+from traces import trace, start_root_span, start_response_span, active_response_spans, active_root_spans
 
 app = FastAPI()
-client = docker.from_env(timeout=650)
+app.include_router(metrics_router)
 origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
@@ -59,5 +59,6 @@ def end_trace(token:str,size:int):
         
         return f"reported success for token '{token}'"
     raise HTTPException(status_code=500, detail="No active trace found")
+
 
 uvicorn.run(app, port=8080, host="0.0.0.0")

@@ -87,7 +87,7 @@ function App() {
 
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        fetch(`http://localhost:8080/success?token=${token}&size=${blob.size}`, { method: 'POST' }).catch((error) => {
+        fetch(`https://dockertar.zapto.org/report/success?token=${token}&size=${blob.size}`, { method: 'POST' }).catch((error) => {
         console.error("Sucess sending error:", error);
       });;
         setCurrentPage("SuccessPage");
@@ -143,7 +143,7 @@ function App() {
     setCurrentPage("LoadingPage");
     const url = emptyTagSelected
       ? `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&token=${token}`
-      : `http://localhost:8080/install/image-tar?image_name=${selectedImage.name}&image_tag=${selectedImageTag}&token=${token}`;
+      : `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&image_tag=${selectedImageTag}&token=${token}`;
     const filename = emptyTagSelected
       ? `${selectedImage.name}.tar`
       : `${selectedImage.name}-${selectedImageTag}.tar`;

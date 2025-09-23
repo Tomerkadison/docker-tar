@@ -57,7 +57,7 @@ def end_trace(token:str,size:int):
         duration_in_seconds = (root_span._end_time - root_span._start_time) / 1_000_000_000
         DOWNLOAD_BYTES_PER_SECOND.set(size/duration_in_seconds)
         
-        return f"Ended trace for token '{token}'"
+        return f"reported success for token '{token}'"
     raise HTTPException(status_code=500, detail="No active trace found")
 
 uvicorn.run(app, port=8080, host="0.0.0.0")

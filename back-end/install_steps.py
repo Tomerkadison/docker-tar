@@ -5,13 +5,15 @@ from fastapi import HTTPException
 
 from config import config
 from docker_client import client
-from traces import start_span_with_image_artibutes
+from traces import start_span_with_image_artibutes,trace
 
 
 @start_span_with_image_artibutes("verifying_token")
 def veirfy_token(token: str, **trace_kwargs):
     if token == config.turnstile.skip_verify_token:
         print("Skipping verification ...")
+        span = trace.get_current_span()
+        span.set_attributes({"test":"True"})
         return
     print("verifying token...")
     try:

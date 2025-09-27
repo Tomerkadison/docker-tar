@@ -1,4 +1,3 @@
-import docker
 import uvicorn
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,30 +19,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/install/image-tar")
 async def install_image(image_name: str, token: str, background_tasks: BackgroundTasks, image_tag: str = ""):
-        root_span = start_root_span(image_name, image_tag,token)
-        try:
-            veirfy_token(token, image_name=image_name, image_tag=image_tag,root_span=root_span)
-            image = pull_image(image_name=image_name, image_tag=image_tag,root_span=root_span)
-            saved_image = save_image(image, image_name=image_name, image_tag=image_tag,root_span=root_span)
-            background_tasks.add_task(delete_image, image_name=image_name, image_tag=image_tag,root_span=root_span)
-            headers = {'Content-Disposition': f'attachment; filename="{image_name}.tar"','trace-id': str(root_span.get_span_context().trace_id)}
-            start_response_span(image_name,image_tag,token,root_span)
-            return StreamingResponse(saved_image, headers=headers, media_type='application/x-tar')
-        except Exception as e:
-            IMAGE_FAILED_DOWNLOADS_METRIC.labels(image_name=image_name, image_tag=image_tag).inc()
-            root_span.record_exception(e)
-            root_span.set_status(trace.Status(trace.StatusCode.ERROR))
-            root_span.end()
-            raise e
-        finally:
-            IMAGE_DOWNLOADS_METRIC.labels(image_name=image_name, image_tag=image_tag).inc()
+    root_span = start_root_span(image_name, image_tag, token)
+    try:
+        veirfy_token(token, image_name=image_name, image_tag=image_tag, root_span=root_span)
+        image = pull_image(image_name=image_name, image_tag=image_tag, root_span=root_span)
+        saved_image = save_image(image, image_name=image_name, image_tag=image_tag, root_span=root_span)
+        background_tasks.add_task(delete_image, image_name=image_name, image_tag=image_tag, root_span=root_span)
+        headers = {'Content-Disposition': f'attachment; filename="{image_name}.tar"',
+                   'trace-id': str(root_span.get_span_context().trace_id)}
+        start_response_span(image_name, image_tag, token, root_span)
+        return StreamingResponse(saved_image, headers=headers, media_type='application/x-tar')
+    except Exception as e:
+        IMAGE_FAILED_DOWNLOADS_METRIC.labels(image_name=image_name, image_tag=image_tag).inc()
+        root_span.record_exception(e)
+        root_span.set_status(trace.Status(trace.StatusCode.ERROR))
+        root_span.end()
+        raise e
+    finally:
+        IMAGE_DOWNLOADS_METRIC.labels(image_name=image_name, image_tag=image_tag).inc()
+
 
 @app.post("/success")
-def end_trace(token:str,size:int):
-    root_span = active_root_spans.pop(token,None)
-    response_span = active_response_spans.pop(token,None)
+def end_trace(token: str, size: int):
+    root_span = active_root_spans.pop(token, None)
+    response_span = active_response_spans.pop(token, None)
     if root_span and response_span:
         response_span.set_status(trace.Status(trace.StatusCode.OK))
         root_span.set_status(trace.Status(trace.StatusCode.OK))
@@ -55,8 +57,8 @@ def end_trace(token:str,size:int):
         IMAGE_SUCCESS_DOWNLOADS_METRIC.labels(image_name=image_name, image_tag=image_tag).inc()
 
         duration_in_seconds = (root_span._end_time - root_span._start_time) / 1_000_000_000
-        DOWNLOAD_BYTES_PER_SECOND.set(size/duration_in_seconds)
-        
+        DOWNLOAD_BYTES_PER_SECOND.set(size / duration_in_seconds)
+
         return f"reported success for token '{token}'"
     raise HTTPException(status_code=500, detail="No active trace found")
 

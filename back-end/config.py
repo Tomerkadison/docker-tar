@@ -8,7 +8,7 @@ class DockerConfig(BaseConfig):
 
 class GrafanaConfig(BaseConfig):
     api_key: str
-    user_id: str
+    user_id: str | int
     tempo_endpoint: str = "https://tempo-prod-15-prod-us-west-0.grafana.net/tempo"
 
 class TurnStileConfig(BaseConfig):

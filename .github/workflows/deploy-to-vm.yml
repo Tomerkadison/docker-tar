@@ -25,6 +25,7 @@ jobs:
 
             # Fetch latest code
             echo "fetching latest git and reseting"
+            whoami
             git fetch origin
             git reset --hard origin/main
             git clean -fd -e node_modules

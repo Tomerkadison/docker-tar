@@ -15,13 +15,13 @@ jobs:
 
             set -e
 
-            echo "Write backend config"
+            echo "Writing backend config ..."
             echo "${{ secrets.BACKEND_CONFIG }}" | tr -d '\r' > /home/solid/docker-tar/back-end/config.yaml
 
             cd /home/solid/docker-tar
 
             # Fetch latest code
-            "echo fetching latest git and reseting"
+            echo "fetching latest git and reseting"
             git fetch origin
             git reset --hard origin/main
             git clean -fd -e node_modules

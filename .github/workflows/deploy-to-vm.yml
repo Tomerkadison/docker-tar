@@ -8,8 +8,48 @@ jobs:
       - name: Execute remote SSH commands using password
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.HOST }}
+          host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USERNAME }}
           password: ${{ secrets.VM_PASSWORD }}
-          port: ${{ secrets.PORT }}
-          script: "/home/solid/deploy.sh"
+          script: |
+            # Write backend config
+            echo "${{ secrets.BACKEND_CONFIG }}" | tr -d '\r' > /home/solid/docker-tar/back-end/config.yaml
+
+            cd /home/solid/docker-tar
+
+            # Fetch latest code
+            git fetch origin
+            git reset --hard origin/main
+            git clean -fd -e node_modules
+
+            # Check for backend changes
+            if ! git diff --quiet HEAD@{1} HEAD -- back-end/; then
+              echo "🔹 Backend changes detected. Deploying backend..."
+              pip install --ignore-installed --break-system-packages -r /home/solid/docker-tar/back-end/requirements.txt
+              sudo systemctl restart backend.service
+            else
+              echo "No backend changes. Skipping backend deployment."
+            fi
+
+            # Check for frontend changes
+            if ! git diff --quiet HEAD@{1} HEAD -- front-end/; then
+              echo "🔹 Frontend changes detected. Deploying frontend..."
+              cd front-end
+              npm install
+              sudo systemctl restart frontend.service
+              cd ..
+            else
+              echo "No frontend changes. Skipping frontend deployment."
+            fi
+
+            # Check if nginx.conf changed
+            if ! git diff --quiet HEAD@{1} HEAD -- nginx.conf; then
+              echo "🔹 nginx.conf changed. Applying nginx updates..."
+              cp /home/solid/docker-tar/nginx.conf /etc/nginx/nginx.conf
+              certbot --nginx -d dockertar.zapto.org --non-interactive --agree-tos -m kadison.tomer@gmail.com
+              sudo systemctl restart nginx.service
+            else
+              echo "No nginx.conf changes. Skipping nginx deployment."
+            fi
+
+            echo "✅ Deployment complete!"

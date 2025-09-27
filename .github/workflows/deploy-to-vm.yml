@@ -14,6 +14,9 @@ jobs:
           script: |
 
             set -e
+            set -x
+            echo "${{ secrets.VM_PASSWORD }}" | sudo -i -S 
+            sudo -i
 
             echo "Writing backend config ..."
             echo "${{ secrets.BACKEND_CONFIG }}" | tr -d '\r' > /home/solid/docker-tar/back-end/config.yaml

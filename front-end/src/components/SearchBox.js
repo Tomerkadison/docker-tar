@@ -69,11 +69,36 @@ const Item = ({ item }) => {
     return null
   }
 
+  // Get last update time
+  const getLastUpdate = () => {
+    if (item.rate_plans && item.rate_plans.length > 0) {
+      const repositories = item.rate_plans[0].repositories
+      if (repositories && repositories.length > 0) {
+        const lastPushed = repositories[0].last_pushed_at
+        if (lastPushed) {
+          const date = new Date(lastPushed)
+          const now = new Date()
+          const diffTime = Math.abs(now - date)
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+          if (diffDays === 1) return "1 day ago"
+          if (diffDays < 7) return `${diffDays} days ago`
+          if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`
+          if (diffDays < 365) return `${Math.ceil(diffDays / 30)} months ago`
+          return `${Math.ceil(diffDays / 365)} years ago`
+        }
+      }
+    }
+    return null
+  }
+
   const pullCount = getPullCount()
+  const lastUpdate = getLastUpdate()
 
   return (
-    <div className='flex items-center justify-between cursor-pointer px-5 py-4'>
-      <div className='flex items-center'>
+    <div className='cursor-pointer px-5 py-4'>
+      {/* Top row: Icon + Name + Description */}
+      <div className='flex items-center mb-2'>
         {hasLogo ? (
           <img
             src={item.logo_url.small}
@@ -97,13 +122,58 @@ const Item = ({ item }) => {
             />
           </svg>
         )}
-        <p>{item.name}</p>
+        <span className="text-white font-medium mr-3">{item.name}</span>
+        <span className="text-gray-400 text-sm truncate">{item.short_description}</span>
       </div>
-      {pullCount && (
-        <span className="text-gray-400 text-sm font-normal ml-2">
-          {pullCount} pulls
-        </span>
-      )}
+
+      {/* Bottom row: Download icon + pulls count + Clock icon + last update */}
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center'>
+          {pullCount && (
+            <div className="flex items-center text-gray-400 text-sm">
+              {/* Download icon */}
+              <svg
+                className="w-4 h-4 mr-1"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M21 21H3M18 11L12 17M12 17L6 11M12 17V3"
+                  stroke="currentColor"
+                  fill="none"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>{pullCount}</span>
+            </div>
+          )}
+        </div>
+
+        <div className='flex items-center'>
+          {lastUpdate && (
+            <div className="flex items-center text-gray-400 text-sm">
+              {/* Clock icon */}
+              <svg
+                className="w-4 h-4 mr-1"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M21.7 13.5L19.7005 11.5L17.7 13.5M20 12C20 16.9706 15.9706 21 11 21C6.02944 21 2 16.9706 2 12C2 7.02944 6.02944 3 11 3C14.3019 3 17.1885 4.77814 18.7545 7.42909M11 7V12L14 14"
+                  stroke="currentColor"
+                  fill="none"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>{lastUpdate}</span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

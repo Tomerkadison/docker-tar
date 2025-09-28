@@ -110,7 +110,7 @@ GET /install/image-tar?image_name={name}&image_tag={tag}
 
 **Parameters:**
 - `image_name` (required) - Docker image name (e.g., `nginx`, `ubuntu`)
-- `image_tag` (optional) - Image tag (defaults to `latest`)
+- `image_tag` (required) - Image tag (may be empty)
 
 **Response:**
 - Content-Type: `application/x-tar`

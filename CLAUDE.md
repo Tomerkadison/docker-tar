@@ -30,7 +30,7 @@ docker-tar/
 
 ### Key Functionality
 - **Single API endpoint**: `GET /install/image-tar`
-- **Parameters**: `image_name` (required), `image_tag` (default: "latest")
+- **Parameters**: `image_name` (required), `image_tag` (required might be empty)
 - **Process Flow**:
   1. Pull Docker image using `client.images.pull()`
   2. Save image as tar using `image.save()`

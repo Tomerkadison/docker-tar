@@ -18,14 +18,17 @@ async function getAllImageTags(namespace, image) {
         const totalCount = firstPageData.count || 0;
         const firstPageTags = firstPageData.results || [];
         
-        // If there are no tags, return default latest tag
+        // If there are no tags, return empty array
         if (totalCount === 0) {
-            return [{ value: 'latest', label: 'latest' }];
+            return [];
         }
         
-        // If all tags fit in the first page, return them
+        // If all tags fit in the first page, filter and return them
         if (totalCount <= 100) {
-            return firstPageTags.map(tag => ({
+            const filteredTags = firstPageTags.filter(tag =>
+                tag.media_type !== "application/vnd.docker.distribution.manifest.v1+prettyjws"
+            );
+            return filteredTags.map(tag => ({
                 value: tag.name,
                 label: tag.name
             }));
@@ -54,9 +57,14 @@ async function getAllImageTags(namespace, image) {
                 allTags = [...allTags, ...pageData.results];
             }
         });
-        
+
+        // Filter out deprecated v1 manifest tags
+        const filteredTags = allTags.filter(tag =>
+            tag.media_type !== "application/vnd.docker.distribution.manifest.v1+prettyjws"
+        );
+
         // Convert to options format
-        return allTags.map(tag => ({
+        return filteredTags.map(tag => ({
             value: tag.name,
             label: tag.name
         }));

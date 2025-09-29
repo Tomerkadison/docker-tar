@@ -87,41 +87,40 @@ const Item = ({ item }) => {
 
   return (
     <div className='cursor-pointer px-5 py-4'>
-      {/* Top row: Icon + Name + Description */}
-      <div className='flex items-center mb-2'>
-        {hasLogo ? (
-          <img
-            src={item.logo_url.small}
-            alt={`${item.name} logo`}
-            className="w-6 h-6 mr-3 rounded object-contain"
-            onError={(e) => {e.target.style.display = 'none'}}
-          />
-        ) : (
-          <svg
-            className="w-6 h-6 mr-3 text-slate-400"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <path
-              d="M20.5 7.27783L12 12.0001M12 12.0001L3.49997 7.27783M12 12.0001L12 21.5001M21 16.0586V7.94153C21 7.59889 21 7.42757 20.9495 7.27477C20.9049 7.13959 20.8318 7.01551 20.7354 6.91082C20.6263 6.79248 20.4766 6.70928 20.177 6.54288L12.777 2.43177C12.4934 2.27421 12.3516 2.19543 12.2015 2.16454C12.0685 2.13721 11.9315 2.13721 11.7986 2.16454C11.6484 2.19543 11.5066 2.27421 11.223 2.43177L3.82297 6.54288C3.52345 6.70928 3.37369 6.79248 3.26463 6.91082C3.16816 7.01551 3.09515 7.13959 3.05048 7.27477C3 7.42757 3 7.59889 3 7.94153V16.0586C3 16.4013 3 16.5726 3.05048 16.7254C3.09515 16.8606 3.16816 16.9847 3.26463 17.0893C3.37369 17.2077 3.52345 17.2909 3.82297 17.4573L11.223 21.5684C11.5066 21.726 11.6484 21.8047 11.7986 21.8356C11.9315 21.863 12.0685 21.863 12.2015 21.8356C12.3516 21.8047 12.4934 21.726 12.777 21.5684L20.177 17.4573C20.4766 17.2909 20.6263 17.2077 20.7354 17.0893C20.8318 16.9847 20.9049 16.8606 20.9495 16.7254C21 16.5726 21 16.4013 21 16.0586Z"
-              stroke="currentColor"
-              fill="none"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        )}
-        <span className="text-white font-medium mr-3">{item.name}</span>
-        <span className="text-gray-400 text-sm truncate">{item.short_description}</span>
-      </div>
-
-      {/* Bottom row: Download icon + pulls count + Clock icon + last update */}
       <div className='flex items-center justify-between'>
+        {/* Left side: Large logo + name */}
         <div className='flex items-center'>
+          {hasLogo ? (
+            <img
+              src={item.logo_url.small}
+              alt={`${item.name} logo`}
+              className="w-8 h-8 mr-4 rounded object-contain"
+              onError={(e) => {e.target.style.display = 'none'}}
+            />
+          ) : (
+            <svg
+              className="w-8 h-8 mr-4 text-slate-400"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <path
+                d="M20.5 7.27783L12 12.0001M12 12.0001L3.49997 7.27783M12 12.0001L12 21.5001M21 16.0586V7.94153C21 7.59889 21 7.42757 20.9495 7.27477C20.9049 7.13959 20.8318 7.01551 20.7354 6.91082C20.6263 6.79248 20.4766 6.70928 20.177 6.54288L12.777 2.43177C12.4934 2.27421 12.3516 2.19543 12.2015 2.16454C12.0685 2.13721 11.9315 2.13721 11.7986 2.16454C11.6484 2.19543 11.5066 2.27421 11.223 2.43177L3.82297 6.54288C3.52345 6.70928 3.37369 6.79248 3.26463 6.91082C3.16816 7.01551 3.09515 7.13959 3.05048 7.27477C3 7.42757 3 7.59889 3 7.94153V16.0586C3 16.4013 3 16.5726 3.05048 16.7254C3.09515 16.8606 3.16816 16.9847 3.26463 17.0893C3.37369 17.2077 3.52345 17.2909 3.82297 17.4573L11.223 21.5684C11.5066 21.726 11.6484 21.8047 11.7986 21.8356C11.9315 21.863 12.0685 21.863 12.2015 21.8356C12.3516 21.8047 12.4934 21.726 12.777 21.5684L20.177 17.4573C20.4766 17.2909 20.6263 17.2077 20.7354 17.0893C20.8318 16.9847 20.9049 16.8606 20.9495 16.7254C21 16.5726 21 16.4013 21 16.0586Z"
+                stroke="currentColor"
+                fill="none"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
+          <span className="text-white font-medium text-lg">{item.name}</span>
+        </div>
+
+        {/* Right side: Metadata stack */}
+        <div className='flex flex-col items-end space-y-1'>
+          {/* Top: Pull count */}
           {pullCount && (
             <div className="flex items-center text-gray-400 text-sm">
-              {/* Download icon */}
               <svg
                 className="w-4 h-4 mr-1"
                 viewBox="0 0 24 24"
@@ -139,12 +138,10 @@ const Item = ({ item }) => {
               <span>{pullCount}</span>
             </div>
           )}
-        </div>
 
-        <div className='flex items-center'>
+          {/* Bottom: Last update */}
           {lastUpdate && (
             <div className="flex items-center text-gray-400 text-sm">
-              {/* Clock icon */}
               <svg
                 className="w-4 h-4 mr-1"
                 viewBox="0 0 24 24"

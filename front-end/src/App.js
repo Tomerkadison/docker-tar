@@ -3,7 +3,7 @@ import TagSelect from './components/TagSelect';
 import './App.css';
 import { Button } from "antd";
 import { DownloadOutlined } from '@ant-design/icons';
-import { getAllImageTags } from './components/TagSelect';
+import { getAllImageTags, loadMoreTags } from './components/TagSelect';
 import React, { useState, useRef, useEffect } from 'react';
 import Turnstile from "react-turnstile";
 
@@ -11,6 +11,7 @@ import Turnstile from "react-turnstile";
 function App() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageTags, setImageTags] = useState(null);
+  const [tagMetadata, setTagMetadata] = useState(null); // New state for tag pagination metadata
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const [currentPage, setCurrentPage] = useState("StartingPage");
   const [emptyTagSelected, setEmptyTagSelected] = useState(false);
@@ -23,31 +24,69 @@ function App() {
   };
   const fetchAllImageTags = async () => {
     if (!selectedImage) return;
-    
+
     try {
       // Check if this is an explicitly entered image with no namespace
-      if (selectedImage.rate_plans && 
-          selectedImage.rate_plans[0] && 
-          selectedImage.rate_plans[0].repositories && 
+      if (selectedImage.rate_plans &&
+          selectedImage.rate_plans[0] &&
+          selectedImage.rate_plans[0].repositories &&
           selectedImage.rate_plans[0].repositories[0]) {
         const imageName = selectedImage.rate_plans[0].repositories[0].name || selectedImage.name;
         const imageNamespace = selectedImage.rate_plans[0].repositories[0].namespace;
-        
+
         try {
-          const allTags = await getAllImageTags(imageNamespace, imageName);
-          setImageTags(allTags);
+          const result = await getAllImageTags(imageNamespace, imageName);
+          setImageTags(result.tags);
+          setTagMetadata({
+            hasMore: result.hasMore,
+            totalCount: result.totalCount,
+            loadedPages: result.loadedPages,
+            totalPages: result.totalPages,
+            namespace: imageNamespace,
+            imageName: imageName
+          });
         } catch (error) {
           console.warn("Error fetching tags:", error);
           // If API fetch fails, set empty array to allow manual tag entry
           setImageTags([]);
+          setTagMetadata(null);
         }
       } else {
         // For explicitly entered images without proper structure
         setImageTags([]);
+        setTagMetadata(null);
       }
     } catch (error) {
       console.warn("Error in fetchAllImageTags:", error);
       setImageTags([]);
+      setTagMetadata(null);
+    }
+  };
+
+  // Function to handle loading more tags
+  const handleLoadMoreTags = async () => {
+    if (!tagMetadata || !tagMetadata.hasMore) return;
+
+    try {
+      const result = await loadMoreTags(
+        tagMetadata.namespace,
+        tagMetadata.imageName,
+        imageTags,
+        tagMetadata.loadedPages,
+        tagMetadata.totalPages
+      );
+
+      // Append new tags to existing ones
+      setImageTags(prevTags => [...prevTags, ...result.newTags]);
+
+      // Update metadata
+      setTagMetadata(prevMetadata => ({
+        ...prevMetadata,
+        hasMore: result.hasMore,
+        loadedPages: result.loadedPages
+      }));
+    } catch (error) {
+      console.warn("Error loading more tags:", error);
     }
   };
 
@@ -55,6 +94,7 @@ function App() {
   useEffect(() => {
     if (selectedImage) {
       setImageTags([]);
+      setTagMetadata(null);
       setIsTagsLoading(true);
       fetchAllImageTags().finally(() => {
         setIsTagsLoading(false);
@@ -133,6 +173,7 @@ function App() {
     if (query === "") {
       setSelectedImage(null);
       setImageTags(null);
+      setTagMetadata(null);
       setSelectedImageTag(null);
       setEmptyTagSelected(false);
       imageTagRef.current?.clearValue();
@@ -179,12 +220,14 @@ return (
               </div>
               <h2 className="text-3xl font-bold text-white my-2 md:my-0">:</h2>
               <div className="w-full md:w-4/12 md:ml-4">
-                <TagSelect 
-                  innerRef={imageTagRef} 
-                  options={imageTags} 
-                  isDisabled={!selectedImage} 
+                <TagSelect
+                  innerRef={imageTagRef}
+                  options={imageTags}
+                  isDisabled={!selectedImage}
                   isLoading={isTagsLoading}
                   selectedImage={selectedImage}
+                  tagMetadata={tagMetadata}
+                  onLoadMoreTags={handleLoadMoreTags}
                   onChange={handleImageTagSelect}
                 />
               </div>

@@ -1,4 +1,5 @@
 import Turnstone from 'turnstone'
+import { getRelativeTime } from '../utils/timeUtils'
 const styles = {
   input: 'w-full border py-2 px-4 text-lg outline-none rounded-md',
   listbox: 'bg-neutral-900 w-full text-slate-50 rounded-md',
@@ -75,18 +76,7 @@ const Item = ({ item }) => {
       const repositories = item.rate_plans[0].repositories
       if (repositories && repositories.length > 0) {
         const lastPushed = repositories[0].last_pushed_at
-        if (lastPushed) {
-          const date = new Date(lastPushed)
-          const now = new Date()
-          const diffTime = Math.abs(now - date)
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-          if (diffDays === 1) return "1 day ago"
-          if (diffDays < 7) return `${diffDays} days ago`
-          if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`
-          if (diffDays < 365) return `${Math.ceil(diffDays / 30)} months ago`
-          return `${Math.ceil(diffDays / 365)} years ago`
-        }
+        return getRelativeTime(lastPushed)
       }
     }
     return null

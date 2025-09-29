@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 //import { Select } from 'antd'
 import { components } from 'react-select';
+import { getRelativeTime } from '../utils/timeUtils';
 
 async function getAllImageTags(namespace, image) {
     try {
@@ -66,7 +67,8 @@ async function getAllImageTags(namespace, image) {
         // Convert to options format
         return filteredTags.map(tag => ({
             value: tag.name,
-            label: tag.name
+            label: tag.name,
+            lastPushed: getRelativeTime(tag.tag_last_pushed || tag.last_updated)
         }));
         
     } catch (error) {
@@ -165,6 +167,23 @@ const TagSelect = (props) => {
     });
     
     
+    // Custom option component to display tag name with last pushed time
+    const Option = (props) => {
+        const { data } = props;
+        return (
+            <components.Option {...props}>
+                <div className="flex justify-between items-center">
+                    <span>{data.label}</span>
+                    {data.lastPushed && (
+                        <span className="text-gray-400 text-sm ml-2">
+                            {data.lastPushed}
+                        </span>
+                    )}
+                </div>
+            </components.Option>
+        );
+    };
+
     // Custom menu component to show "Use: <input>" option and empty tag option
     const Menu = (props) => {
         const { options, children } = props;
@@ -291,7 +310,7 @@ const TagSelect = (props) => {
             isDisabled={props.isDisabled || isLoading}
             isLoading={isLoading}
             loadingMessage={() => "Fetching all tags..."}
-            components={{ Menu }}
+            components={{ Menu, Option }}
             options={filteredOptions}
             onInputChange={handleInputChange}
             onKeyDown={handleKeyDown}

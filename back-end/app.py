@@ -21,11 +21,11 @@ app.add_middleware(
 
 
 @app.get("/install/image-tar")
-async def install_image(image_name: str, token: str, background_tasks: BackgroundTasks, image_tag: str = ""):
+async def install_image(image_name: str, token: str, background_tasks: BackgroundTasks, image_tag: str = "", architecture: str = "linux/amd64"):
     root_span = start_root_span(image_name, image_tag, token)
     try:
         veirfy_token(token, image_name=image_name, image_tag=image_tag, root_span=root_span)
-        image = pull_image(image_name=image_name, image_tag=image_tag, root_span=root_span)
+        image = pull_image(image_name=image_name, image_tag=image_tag, architecture=architecture, root_span=root_span)
         saved_image = save_image(image, image_name=image_name, image_tag=image_tag, root_span=root_span)
         background_tasks.add_task(delete_image, image_name=image_name, image_tag=image_tag, root_span=root_span)
         headers = {'Content-Disposition': f'attachment; filename="{image_name}.tar"',

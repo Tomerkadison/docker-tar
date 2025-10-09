@@ -35,7 +35,8 @@ async function getAllImageTags(namespace, image, maxInitialPages = MAX_INITIAL_R
             const mappedTags = filteredTags.map(tag => ({
                 value: tag.name,
                 label: tag.name,
-                lastPushed: getRelativeTime(tag.tag_last_pushed || tag.last_updated)
+                lastPushed: getRelativeTime(tag.tag_last_pushed || tag.last_updated),
+                images: tag.images || [] // Include images array for architecture detection
             }));
             return { tags: mappedTags, hasMore: false, totalCount, loadedPages: 1 };
         }
@@ -70,11 +71,12 @@ async function getAllImageTags(namespace, image, maxInitialPages = MAX_INITIAL_R
             tag.media_type !== "application/vnd.docker.distribution.manifest.v1+prettyjws"
         );
 
-        // Convert to options format
+        // Convert to options format and include architecture info
         const mappedTags = filteredTags.map(tag => ({
             value: tag.name,
             label: tag.name,
-            lastPushed: getRelativeTime(tag.tag_last_pushed || tag.last_updated)
+            lastPushed: getRelativeTime(tag.tag_last_pushed || tag.last_updated),
+            images: tag.images || [] // Include images array for architecture detection
         }));
 
         return {
@@ -122,11 +124,12 @@ async function loadMoreTags(namespace, image, currentTags, loadedPages, totalPag
             tag.media_type !== "application/vnd.docker.distribution.manifest.v1+prettyjws"
         );
 
-        // Convert to options format
+        // Convert to options format and include architecture info
         const mappedTags = filteredTags.map(tag => ({
             value: tag.name,
             label: tag.name,
-            lastPushed: getRelativeTime(tag.tag_last_pushed || tag.last_updated)
+            lastPushed: getRelativeTime(tag.tag_last_pushed || tag.last_updated),
+            images: tag.images || [] // Include images array for architecture detection
         }));
 
         return {

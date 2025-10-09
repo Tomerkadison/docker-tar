@@ -31,8 +31,14 @@ def veirfy_token(token: str, **trace_kwargs):
 
 
 @start_span_with_image_artibutes("pulling_image")
-def pull_image(image_name: str, image_tag: str, **trace_kwargs) -> Image:
-    image = client.images.pull(image_name, tag=image_tag)
+def pull_image(image_name: str, image_tag: str, architecture: str = "linux/amd64", **trace_kwargs) -> Image:
+    # If architecture is linux/amd64, use default pull (no platform parameter)
+    if architecture == "linux/amd64":
+        image = client.images.pull(image_name, tag=image_tag)
+    else:
+        # For non-amd64 architectures, specify the platform
+        image = client.images.pull(image_name, tag=image_tag, platform=architecture)
+
     if not image:
         raise HTTPException(status_code=500, detail="Failed to pull image")
     return image

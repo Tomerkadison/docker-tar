@@ -13,6 +13,7 @@ function App() {
   const [imageTags, setImageTags] = useState(null);
   const [tagMetadata, setTagMetadata] = useState(null); // New state for tag pagination metadata
   const [selectedImageTag, setSelectedImageTag] = useState(null);
+  const [selectedTagObject, setSelectedTagObject] = useState(null); // Store full tag object for architecture info
   const [currentPage, setCurrentPage] = useState("StartingPage");
   const [emptyTagSelected, setEmptyTagSelected] = useState(false);
   const [isTagsLoading, setIsTagsLoading] = useState(false);
@@ -151,19 +152,22 @@ function App() {
   function handleImageTagSelect(selectedItem) {
     if (selectedItem) {
       console.log("Tag selected:", selectedItem); // Debug log
-      
+
       // Check if this is the empty tag option
       if (selectedItem.value === '') {
         setSelectedImageTag('');
+        setSelectedTagObject(null);
         setEmptyTagSelected(true);
       } else {
         setSelectedImageTag(selectedItem.value);
+        setSelectedTagObject(selectedItem); // Store full tag object with images array
         setEmptyTagSelected(false);
       }
     } else {
       // Handle the case where selectedItem is null or undefined
       console.log("No tag selected or empty tag");
       setSelectedImageTag(null);
+      setSelectedTagObject(null);
       setEmptyTagSelected(false);
     }
   }
@@ -175,16 +179,54 @@ function App() {
       setImageTags(null);
       setTagMetadata(null);
       setSelectedImageTag(null);
+      setSelectedTagObject(null);
       setEmptyTagSelected(false);
       imageTagRef.current?.clearValue();
     }
   }
 
+  // Helper function to detect architecture from tag images
+  function detectArchitecture(tagObject) {
+    // Default to linux/amd64 if no tag object or images array
+    if (!tagObject || !tagObject.images || tagObject.images.length === 0) {
+      return "linux/amd64";
+    }
+
+    // Check if linux/amd64 is available
+    const hasLinuxAmd64 = tagObject.images.some(
+      img => img.os === "linux" && img.architecture === "amd64"
+    );
+
+    if (hasLinuxAmd64) {
+      return "linux/amd64";
+    }
+
+    // If linux/amd64 is not available, find the first valid linux architecture
+    const firstLinuxImage = tagObject.images.find(
+      img => img.os === "linux" && img.architecture && img.architecture !== "unknown"
+    );
+
+    if (firstLinuxImage) {
+      // Format: os/architecture or os/architecture/variant
+      if (firstLinuxImage.variant) {
+        return `${firstLinuxImage.os}/${firstLinuxImage.architecture}/${firstLinuxImage.variant}`;
+      }
+      return `${firstLinuxImage.os}/${firstLinuxImage.architecture}`;
+    }
+
+    // Fallback to linux/amd64 if no valid architecture found
+    return "linux/amd64";
+  }
+
   function handleDownload(token) {
     setCurrentPage("LoadingPage");
+
+    // Detect architecture for the selected tag
+    const architecture = emptyTagSelected ? "linux/amd64" : detectArchitecture(selectedTagObject);
+
     const url = emptyTagSelected
-      ? `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&token=${token}`
-      : `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&image_tag=${selectedImageTag}&token=${token}`;
+      ? `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&token=${token}&architecture=${encodeURIComponent(architecture)}`
+      : `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&image_tag=${selectedImageTag}&token=${token}&architecture=${encodeURIComponent(architecture)}`;
     const filename = emptyTagSelected
       ? `${selectedImage.name}.tar`
       : `${selectedImage.name}-${selectedImageTag}.tar`;

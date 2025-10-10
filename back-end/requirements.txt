@@ -9,3 +9,4 @@ opentelemetry-exporter-otlp-proto-grpc==1.21.0
 opentelemetry-instrumentation-fastapi==0.42b0
 cachetools==6.2.0
 confz==2.1.0
+twilio==9.8.3

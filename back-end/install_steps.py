@@ -5,7 +5,7 @@ from fastapi import HTTPException
 
 from config import config
 from docker_client import client
-from traces import start_span_with_image_artibutes,trace
+from observability.traces import start_span_with_image_artibutes,trace
 
 
 @start_span_with_image_artibutes("verifying_token")

@@ -6,6 +6,14 @@ class DockerConfig(BaseConfig):
     token: str
     timeout: int = 650
 
+class TwilioConfig(BaseConfig):
+    account_sid: str
+    auth_token: str
+    content_sid:str
+    from_number: str
+    to_number: str
+
+
 class GrafanaConfig(BaseConfig):
     api_key: str
     user_id: str | int
@@ -20,6 +28,7 @@ class Config(BaseConfig):
     docker_client : DockerConfig
     turnstile : TurnStileConfig
     grafana : GrafanaConfig
+    twilio : TwilioConfig
     metrics_route_token : str
 
     CONFIG_SOURCES = FileSource(file="config.yaml")

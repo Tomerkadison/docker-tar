@@ -4,9 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 from install_steps import veirfy_token, pull_image, delete_image, save_image
-from metrics import IMAGE_DOWNLOADS_METRIC, IMAGE_FAILED_DOWNLOADS_METRIC, IMAGE_SUCCESS_DOWNLOADS_METRIC, \
+from observability.metrics import IMAGE_DOWNLOADS_METRIC, IMAGE_FAILED_DOWNLOADS_METRIC, IMAGE_SUCCESS_DOWNLOADS_METRIC, \
     DOWNLOAD_BYTES_PER_SECOND, metrics_router
-from traces import trace, start_root_span, start_response_span, active_response_spans, active_root_spans
+from observability.traces import trace, start_root_span, start_response_span, active_response_spans, active_root_spans
+from observability.twilio_error_alerting import send_error_message
 
 app = FastAPI()
 app.include_router(metrics_router)
@@ -37,6 +38,7 @@ async def install_image(image_name: str, token: str, background_tasks: Backgroun
         root_span.record_exception(e)
         root_span.set_status(trace.Status(trace.StatusCode.ERROR))
         root_span.end()
+        send_error_message(image_name=image_name, image_tag=image_tag, token=token, architecture=architecture, exception=e)
         raise e
     finally:
         IMAGE_DOWNLOADS_METRIC.labels(image_name=image_name, image_tag=image_tag).inc()

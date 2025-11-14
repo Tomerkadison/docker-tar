@@ -46,7 +46,7 @@ def pull_image(image_name: str, image_tag: str, architecture: str = "linux/amd64
 
 @start_span_with_image_artibutes("saving_image")
 def save_image(image: Image, **trace_kwargs):
-    return image.save(named=True, chunk_size=DEFAULT_DATA_CHUNK_SIZE)
+    return image.save(named=True, chunk_size = 64 * 1024)
 
 
 # @start_span_with_image_artibutes("deleting_image")

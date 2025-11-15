@@ -9,7 +9,9 @@ jobs:
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VM_HOST }}
-          key: ${{ secrets.SSH_KEY }}
+          key: | 
+            ${{ secrets.SSH_KEY }}
+          
           script: |
 
             set -e

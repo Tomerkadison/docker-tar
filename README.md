@@ -31,15 +31,26 @@ Docker Tar solves a fundamental problem: **downloading Docker images without hav
 ## 🖥️ Screenshots
 
 <div align="center">
-  
-### Main Interface
-*Search for any Docker image and select your preferred tag*
 
-### Download in Progress  
-*Real-time progress with visual feedback*
+### Smart Image Search
+*Search millions of Docker Hub images with autocomplete — logos, verified/official badges, pull counts and last-updated times*
+
+<img src="docs/screenshots/01-search.png" alt="Searching Docker Hub images with autocomplete" width="80%">
+
+### Tag Selection
+*Browse every tag for an image, with fast filtering and incremental loading of large tag lists*
+
+<img src="docs/screenshots/02-tag-select.png" alt="Selecting an image tag" width="80%">
+
+### Download in Progress
+*Real-time feedback while the image is pulled and streamed to your browser as a tar*
+
+<img src="docs/screenshots/03-downloading.png" alt="Download in progress" width="80%">
 
 ### Success State
 *Your tar file is ready for use*
+
+<img src="docs/screenshots/04-success.png" alt="Download complete — your image tar is ready" width="80%">
 
 </div>
 

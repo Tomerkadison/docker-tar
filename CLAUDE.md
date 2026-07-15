@@ -172,6 +172,33 @@ Based on git commits:
 - `front-end/src/App.js:96-102` - Download handling
 - `front-end/src/components/TagSelect.js:6-46` - Tag fetching logic
 
+## README Screenshots
+
+The README's Screenshots section is backed by real images in `docs/screenshots/`
+(`01-search.png`, `02-tag-select.png`, `03-downloading.png`, `04-success.png`),
+captured against the local stack (`http://localhost:8081`).
+
+To regenerate them, a reproducible driver lives at `.local-run/shots/shoot.mjs`
+(the whole `.local-run/` tree is gitignored). Key facts:
+
+- The download flow is gated by a **Cloudflare Turnstile** "Verify you are human"
+  challenge. A vanilla automated browser fails it (error `600010`) because
+  Cloudflare detects automation — so plain Playwright/Puppeteer can't reach the
+  Loading/Success pages.
+- The script uses **CloakBrowser** (`npm i cloakbrowser playwright-core`), a
+  stealth Chromium that passes Turnstile. Launch with `headless:false` +
+  `humanize:true`. The Turnstile checkbox is inside a managed iframe/shadow root
+  that CSS locators don't reach, so the script clicks it at its fixed on-screen
+  position (CSS ≈ `590,308` for the centered VerifyPage layout at a 1440×900
+  viewport) and retries every 5s until the LoadingPage appears.
+- The Success screenshot requires a **real image pull** by the backend, so Docker
+  Desktop must be running and `back-end/config.yaml` present. Run: from
+  `.local-run/shots/`, `node shoot.mjs` (screenshots are written to the repo root
+  then moved into `docs/screenshots/`).
+- Backend note: `install_steps.py:veirfy_token` short-circuits when the token
+  equals `turnstile.skip_verify_token` in `config.yaml` — an alternative bypass
+  for local testing that doesn't need a real Turnstile token.
+
 ## Project Workflow Guidelines
 - Make sure to update the readme.md file after every change that may interest the repo visitor
 

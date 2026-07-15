@@ -3,6 +3,7 @@ import Select from 'react-select';
 //import { Select } from 'antd'
 import { components } from 'react-select';
 import { getRelativeTime } from '../utils/timeUtils';
+import config from '../config';
 
 // Configurable limit for maximum API requests to prevent rate limiting
 const MAX_INITIAL_REQUESTS = 10; // This can be changed as needed
@@ -11,7 +12,7 @@ async function getAllImageTags(namespace, image, maxInitialPages = MAX_INITIAL_R
     try {
         // First, fetch the first page to get the total count
         const firstPageRes = await fetch(
-            `https://dockertar.zapto.org/dockerhub/v2/repositories/${namespace}/${image}/tags/?page_size=100&page=1&name&ordering`
+            `${config.dockerHubTagsUrl(namespace, image)}?page_size=100&page=1&name&ordering`
         );
 
         if (!firstPageRes.ok) {
@@ -49,7 +50,7 @@ async function getAllImageTags(namespace, image, maxInitialPages = MAX_INITIAL_R
         // Create promises for additional pages up to the limit
         for (let page = 2; page <= pagesToFetch; page++) {
             additionalPages.push(
-                fetch(`https://dockertar.zapto.org/dockerhub/v2/repositories/${namespace}/${image}/tags/?page_size=100&page=${page}&name&ordering`)
+                fetch(`${config.dockerHubTagsUrl(namespace, image)}?page_size=100&page=${page}&name&ordering`)
                     .then(res => res.ok ? res.json() : { results: [] })
                     .catch(() => ({ results: [] }))
             );
@@ -102,7 +103,7 @@ async function loadMoreTags(namespace, image, currentTags, loadedPages, totalPag
         // Create promises for the next batch of pages
         for (let page = startPage; page <= endPage; page++) {
             additionalPages.push(
-                fetch(`https://dockertar.zapto.org/dockerhub/v2/repositories/${namespace}/${image}/tags/?page_size=100&page=${page}&name&ordering`)
+                fetch(`${config.dockerHubTagsUrl(namespace, image)}?page_size=100&page=${page}&name&ordering`)
                     .then(res => res.ok ? res.json() : { results: [] })
                     .catch(() => ({ results: [] }))
             );

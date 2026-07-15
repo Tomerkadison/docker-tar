@@ -68,7 +68,27 @@ Docker Tar is built with modern web technologies for optimal performance and rel
 - Docker Engine
 - Nginx (for production)
 
-### Development Setup
+### One-Click Local Run (macOS)
+
+The fastest way to run the whole stack (backend + frontend + nginx) locally:
+
+1. Make sure **Docker Desktop** is installed and **Homebrew** is available.
+2. Double-click **`run-local.command`** in Finder (or run `./run-local.command`).
+
+It automatically:
+- installs nginx via Homebrew on first run (if missing),
+- creates a Python venv and installs backend dependencies,
+- installs frontend dependencies (if needed),
+- writes `front-end/.env.local` pointing the app at the local nginx,
+- starts the backend (`:8080`), frontend (`:3000`) and nginx (`:8081`),
+- opens the app at **http://localhost:8081**.
+
+Press `Ctrl+C` in the window, or double-click **`stop-local.command`**, to stop
+everything. Logs and generated files live in `.local-run/` (gitignored). nginx
+runs on port `8081` (not `80`) so no `sudo`/password is ever required; change
+`NGINX_PORT` at the top of `run-local.command` if that port is taken.
+
+### Development Setup (manual)
 
 1. **Clone the repository**
    ```bash
@@ -90,6 +110,19 @@ Docker Tar is built with modern web technologies for optimal performance and rel
    npm install
    npm start
    ```
+
+   **Configuring URLs (run locally):** All external URLs live in
+   `front-end/src/config.js` and are driven by environment variables. To point
+   the app at a local backend instead of production, copy the template and edit
+   it:
+   ```bash
+   cp .env.example .env.local
+   # then set, e.g.:
+   #   REACT_APP_BACKEND_URL=http://localhost:8080
+   #   REACT_APP_DOCKERHUB_PROXY_URL=http://localhost:8080
+   ```
+   Restart `npm start` after changing env values. Unset values fall back to the
+   production host (`https://dockertar.zapto.org`).
 
 4. **Open your browser**
    ```

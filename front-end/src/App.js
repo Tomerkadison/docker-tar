@@ -6,6 +6,7 @@ import { DownloadOutlined } from '@ant-design/icons';
 import { getAllImageTags, loadMoreTags } from './components/TagSelect';
 import React, { useState, useRef, useEffect } from 'react';
 import Turnstile from "react-turnstile";
+import config from './config';
 
 
 function App() {
@@ -128,7 +129,7 @@ function App() {
 
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        fetch(`https://dockertar.zapto.org/report/success?token=${token}&size=${blob.size}`, { method: 'POST' }).catch((error) => {
+        fetch(`${config.reportSuccessUrl}?token=${token}&size=${blob.size}`, { method: 'POST' }).catch((error) => {
         console.error("Sucess sending error:", error);
       });;
         setCurrentPage("SuccessPage");
@@ -225,8 +226,8 @@ function App() {
     const architecture = emptyTagSelected ? "linux/amd64" : detectArchitecture(selectedTagObject);
 
     const url = emptyTagSelected
-      ? `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&token=${token}&architecture=${encodeURIComponent(architecture)}`
-      : `https://dockertar.zapto.org/install?image_name=${selectedImage.name}&image_tag=${selectedImageTag}&token=${token}&architecture=${encodeURIComponent(architecture)}`;
+      ? `${config.installUrl}?image_name=${selectedImage.name}&token=${token}&architecture=${encodeURIComponent(architecture)}`
+      : `${config.installUrl}?image_name=${selectedImage.name}&image_tag=${selectedImageTag}&token=${token}&architecture=${encodeURIComponent(architecture)}`;
     const filename = emptyTagSelected
       ? `${selectedImage.name}.tar`
       : `${selectedImage.name}-${selectedImageTag}.tar`;
@@ -337,7 +338,7 @@ return (
         {currentPage === "VerifyPage" && (
           <div className='mt-20 mx-auto w-full flex justify-center items-center flex-col'>
              <Turnstile
-              sitekey="0x4AAAAAAB02nGeNdVYltnlB"
+              sitekey={config.turnstileSiteKey}
               onVerify={handleVerify}
               theme="light"
             />

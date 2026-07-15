@@ -73,6 +73,49 @@ docker-tar/
 - **Performance**: Handles large tag lists efficiently
 - Real-time search with debouncing
 
+## Local One-Click Run (macOS)
+
+`run-local.command` (double-clickable in Finder) builds and starts the full
+stack; `stop-local.command` stops it. Key facts for future changes:
+
+- **Ports:** backend `:8080`, frontend `:3000`, nginx `:8081` (open
+  `http://localhost:8081`). nginx uses `8081` instead of production's `80` so
+  **no sudo is needed**. Override via `NGINX_PORT` at the top of the script.
+- **Runtime artifacts** live in `.local-run/` (gitignored): `logs/`,
+  `nginx.local.conf` (generated), `nginx.pid`, `tmp/` (nginx temp dirs),
+  `backend.pid`, `frontend.pid`, `.deps-installed` (pip marker).
+- **nginx config** is generated from `nginx.conf` by an `awk` block that swaps
+  `listen 80` → `listen $NGINX_PORT` and redirects pid/access-log/temp paths
+  into `.local-run/` (nginx's compiled defaults under `/opt/homebrew` are not
+  user-writable). The error log is set via `nginx -e`. If you edit `nginx.conf`,
+  the launcher picks up changes automatically on next run.
+- **Backend venv:** `back-end/.venv` (gitignored). Deps reinstall only when
+  `requirements.txt` is newer than the marker.
+- The script generates `front-end/.env.local` pointing the frontend at
+  `http://localhost:$NGINX_PORT`. See the "Configuration (URLs)" section below.
+- **Clone portability:** `back-end/config.yaml` is gitignored (secrets), so a
+  fresh clone lacks it and the backend cannot start. `back-end/config.yaml.example`
+  is the committed template; the launcher preflight-checks for `config.yaml` and
+  aborts with guidance if absent. Frontend + nginx need no secrets.
+
+## Configuration (URLs)
+
+All external URLs and endpoints are centralized in `front-end/src/config.js`.
+There are **no hardcoded URLs** in the components — `App.js`, `SearchBox.js`, and
+`TagSelect.js` all import from `config.js`.
+
+`config.js` is driven by Create React App environment variables (must be prefixed
+with `REACT_APP_`), falling back to the production host when unset:
+- `REACT_APP_BACKEND_URL` → `installUrl` (`/install`), `reportSuccessUrl` (`/report/success`)
+- `REACT_APP_DOCKERHUB_PROXY_URL` → `dockerHubSearchUrl`, `dockerHubTagsUrl(namespace, image)`
+- `REACT_APP_TURNSTILE_SITE_KEY` → Cloudflare Turnstile site key
+
+To run locally, copy `front-end/.env.example` to `front-end/.env.local` and set
+the values (e.g. `http://localhost:8080`), then restart `npm start`. `.env.local`
+is gitignored; `.env.example` is the committed template.
+
+When adding a new external URL, add it to `config.js` rather than hardcoding it.
+
 ## API Integration
 
 ### Docker Hub APIs (via nginx proxy)

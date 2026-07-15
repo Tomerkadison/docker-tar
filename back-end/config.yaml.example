@@ -1,0 +1,44 @@
+# Backend configuration template.
+#
+# Copy this file to `config.yaml` (same folder) and fill in real values.
+# `config.yaml` is gitignored on purpose — it holds secrets and is never
+# committed. The backend will not start without it.
+#
+#   cp config.yaml.example config.yaml
+#
+# Minimum to run locally: a valid Docker Hub username + access token. The other
+# sections (grafana/twilio) are for production observability/alerting; put any
+# syntactically-valid placeholder values there for local use.
+
+docker_client:
+  # Docker Hub credentials. The backend logs in at startup (used for pull rate
+  # limits). Create a token at https://hub.docker.com/settings/security
+  username: your-dockerhub-username
+  token: your-dockerhub-access-token
+  timeout: 1200
+
+turnstile:
+  # Cloudflare Turnstile secret (server side). For local dev you mainly care
+  # about skip_verify_token below.
+  secret_token: your-cloudflare-turnstile-secret
+  # Any long random string. If the frontend sends this exact value as the
+  # `token`, the backend SKIPS Turnstile verification — handy for local testing
+  # where the Turnstile widget may not issue a token on localhost.
+  skip_verify_token: change-me-to-a-long-random-string
+
+grafana:
+  # Grafana Cloud (OpenTelemetry traces). Placeholders are fine for local use;
+  # traces just fail to export in the background.
+  api_key: your-grafana-cloud-api-key
+  user_id: your-grafana-user-id
+
+twilio:
+  # Twilio (WhatsApp error alerts). Only used on backend failures.
+  account_sid: your-twilio-account-sid
+  auth_token: your-twilio-auth-token
+  content_sid: your-twilio-content-sid
+  from_number: whatsapp:+14155238886
+  to_number: whatsapp:+10000000000
+
+# Bearer token guarding the /server/metrics route. Any long random string.
+metrics_route_token: change-me-to-a-long-random-string

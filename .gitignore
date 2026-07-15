@@ -2,3 +2,5 @@ node_modules/
 .DS_Store
 .playwright-mcp
 back-end/load_test.py
+.local-run/
+back-end/.venv/

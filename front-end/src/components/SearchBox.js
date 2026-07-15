@@ -1,5 +1,6 @@
 import Turnstone from 'turnstone'
 import { getRelativeTime } from '../utils/timeUtils'
+import config from '../config'
 const styles = {
   input: 'w-full border py-2 px-4 text-lg outline-none rounded-md',
   listbox: 'bg-neutral-900 w-full text-slate-50 rounded-md',
@@ -16,7 +17,7 @@ const styles = {
 
 const getListbox = async (query) => {
   const searchRes = await fetch(
-    `https://dockertar.zapto.org/dockerhub/api/search/v3/catalog/search?query=${query}&from=0&size=4&type=image`
+    `${config.dockerHubSearchUrl}?query=${query}&from=0&size=4&type=image`
   )
   const searchData = await searchRes.json()
   const searchResults = searchData.results || []
